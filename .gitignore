@@ -1,0 +1,13 @@
+#Git repo
+.git/*
+
+#PyBuilder
+target/
+
+# Coverage files
+*.coverage
+
+# Bytecode
+__pycache__/
+*.pyo
+*.pyc
