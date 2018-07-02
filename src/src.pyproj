@@ -25,6 +25,9 @@
     <Compile Include="main\python\ml\classifier\bayesian\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="main\python\ml\classifier\svm\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="main\python\ml\classifier\__init__.py">
       <SubType>Code</SubType>
     </Compile>
@@ -91,6 +94,7 @@
     <Folder Include="main\python\ml\classifier\" />
     <Folder Include="main\python\ml\classifier\ann\" />
     <Folder Include="main\python\ml\classifier\bayesian\" />
+    <Folder Include="main\python\ml\classifier\svm\" />
     <Folder Include="main\python\ml\reduction\" />
     <Folder Include="main\python\ml\reduction\pca\" />
     <Folder Include="main\python\ml\regression\" />
