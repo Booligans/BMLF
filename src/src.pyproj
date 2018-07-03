@@ -61,9 +61,6 @@
     <Compile Include="main\python\ml\regression\elasticnet.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="main\python\ml\regression\lasso.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="main\python\ml\regression\linear.py">
       <SubType>Code</SubType>
     </Compile>
@@ -71,9 +68,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="main\python\ml\regression\polynomial.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="main\python\ml\regression\ridge.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="main\python\ml\regression\stepwise.py">
