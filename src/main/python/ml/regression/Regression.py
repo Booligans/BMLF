@@ -1,6 +1,6 @@
 
 from sklearn import linear_model
-from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.model_selection import cross_val_predict, cross_val_score, cross_validate
 from copy import copy, deepcopy
 
 """
@@ -19,7 +19,6 @@ Implementing Polynomial regression as Linear regression: https://stats.stackexch
 
 class LinearModel:
     """This class encapsulates a linear model. 
-
     """
     self.model_ = None
 
@@ -32,7 +31,7 @@ class LinearModel:
 
         X and y are provided, the model will be directly trained using it.
 
-        :param type: The type of the model. Supports {'linear', 'polynomial',logistic','logisticcv','elasticnet','elasticnetcv','orthogonal','orthogonalcv','theil','sgd','perceptron','passive_aggressive'
+        :param type: The type of the model. Supports {'linear', 'polynomial',logistic','logisticcv','elasticnet','elasticnetcv','orthogonal','orthogonalcv','theil','sgd','perceptron','passive_aggressive'}
         :param ini_params: The parameters of the model
         :param X: data
         :param y: target values
@@ -80,12 +79,12 @@ class LinearModel:
 
         if type != 'auto':
             if avoid_overfitting:
-                self.fit_and_evaluate(X,y,n_splits= 10)
+                self.fit(X,y,n_splits= 10)
             else:
                 fit(X,y)
         
   
-    def fit_and_evaluate(self, X, y = None, test_size = 0.25, random_state = 0, n_splits = 1):
+    def fit(self, X, y = None, test_size = 0.25, random_state = 0, n_splits = 1):
         """Fits the sample splitting the sample to avoid overfitting.
         Returns the scores of each iteration.
 
@@ -105,12 +104,12 @@ class LinearModel:
             X_train, X_test = X[train_index], X[test_index]
             y_train, y_test = y[train_index], y[test_index]
             model_.fit(X_train,y_train)
-            scores.append(model.score(X_test, y_test))
+            scores.append(model_.score(X_test, y_test))
         return scores
 
     def score(self, X):
         """
-        Returns the score of the sample.
+        Returns the coefficient of determination R^2 of the prediction.
 
         :param X: data
         :type X: ndarray or scipy.sparse matrix, (n_samples, n_features)
@@ -129,16 +128,20 @@ class LinearModel:
         """
         self.model_.get_params()
 
-    def compare(self, model : LinearModel, X):
+    def compare(self, model : LinearModel, X, y = None):
         """
         Compares the score of a sample in two models.
-
+        Returns a crossvalidation of metrics, predictions and score.
+        
         :param model: model
         :param X: data
         :type model: LinearModel
         :type X: ndarray or scipy.sparse matrix, (n_samples, n_features)
         """
-        return self.model_.score(test_X)/model.model_.score(test_X)
+        metric = cross_validate(estimator=model.model_,X=X,y=y,scoring='r2')
+        predictions = cross_val_predict(model.model_,X=X,y=y)
+        score = cross_val_score(model.model_, X, y)
+        return metric, predictions, score
 
     def choose_model(self,X,y = None):
         """
@@ -150,4 +153,28 @@ class LinearModel:
         :type X: ndarray or scipy.sparse matrix, (n_samples, n_features)
         :type y: ndarray, shape (n_samples,) or (n_samples, n_targets)
         """
-        return None
+        #{'linear', 'polynomial',logistic','logisticcv','elasticnet','elasticnetcv','orthogonal','orthogonalcv','theil','sgd','perceptron','passive_aggressive'}
+        models = {'linear':linear_model.LinearRegression(),'logistic':linear_model.LogisticRegression(),'elasticnet':linear_model.ElasticNet(),'orthogonal':linear_model.OrthogonalMatchingPursuit(),'theil':linear_model.TheilSenRegressor(),'sgd':linear_model.SGDRegressor(),'passive_agressive':linear_model.PassiveAggressiveRegressor()}
+        scores = {}
+        for name,model in models:
+            scores[name] = []
+
+        sss = StratifiedShuffleSplit(10, 0.25)
+        for train_index, test_index in sss.get_n_splits(X,y):
+            X_train, X_test = X[train_index], X[test_index]
+            y_train, y_test = y[train_index], y[test_index]
+            for name, model in models:
+                mode.fit(X_train,y_train)
+                scores[name].append(model.score(X_test,y_test))
+        
+        #Choose http://blog.minitab.com/blog/adventures-in-statistics-2/how-to-choose-the-best-regression-model
+        index = None
+        for name,model in models:
+            min = 10000
+            if scores[name][-1] < min:
+                min = scores[name][-1]
+                index = name
+        _model = models[index]
+
+        
+        
