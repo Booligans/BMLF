@@ -16,7 +16,7 @@ x Jacknife Regression
 Implementing Polynomial regression as Linear regression: https://stats.stackexchange.com/questions/58739/polynomial-regression-using-scikit-learn
 """
 
-class LinearModel:
+class LinearModel(object):
     """This class encapsulates a linear model."""
     self.model_ = None
 
