@@ -1,24 +1,18 @@
 from sklearn import cluster
 from sklearn.model_selection import cross_val_predict, cross_val_score, cross_validate
 from copy import copy, deepcopy
-
-"""
-Linear Regression
-Logistic Regression
-Polynomial Regression
-
-x Ridge Regression
-x Lasso Regression
-->ElasticNet Regression
-
-x Jacknife Regression
-
-Implementing Polynomial regression as Linear regression: https://stats.stackexchange.com/questions/58739/polynomial-regression-using-scikit-learn
-"""
+from sklearn import metrics
 
 class Clustering(object):
     """This class encapsulates a linear model."""
     self.model_ = None
+    self.suported_models = models = {'kmeans':cluster.KMeans(),
+                  'affinity':cluster.AffinityPropagation(),
+                  'mean_shift':cluster.MeanShift(),
+                  'spectral':cluster.SpectralClustering(),
+                  'agglomerative':cluster.AgglomerativeClustering(),
+                  'dbscan':cluster.DBSCAN(),
+                  'birch':cluster.Birch()}
 
     def __init__(self, type = 'auto', ini_params = {}, X = None, y = None, avoid_overfitting = True):
         """ Initiates the Regression class.
@@ -45,85 +39,30 @@ class Clustering(object):
         :Example:
         >>> clustering = Clustering('birch', {'threshold':0.5, 'branching_factor':50, 'n_clusters':3, 'compute_labels':True, 'copy':True})
         """
-        self._type = type
-        self.model_ = None
-        
-        if type == 'kmeans' or type == 'polynomial':
-            model_ = cluster.KMeans(ini_params['n_clusters'],
-                                                    ini_params['init'],
-                                                    ini_params['n_init'],
-                                                    ini_params['max_iter'],
-                                                    ini_params['tol'],
-                                                    ini_params['precompute_distances'],
-                                                    ini_params['verbose'],
-                                                    ini_params['random_state'],
-                                                    ini_params['copy_x'],
-                                                    ini_params['n_jobs'],
-                                                    ini_params['algorithm']) 
-        elif type == 'affinity':
-            model_ = cluster.AffinityPropagation(ini_params['damping'],
-                                                     ini_params['max_iter'],
-                                                     ini_params['convergence_iter'],
-                                                     ini_params['copy'],
-                                                     ini_params['preference'],
-                                                     ini_params['affinity'],
-                                                     ini_params['verbose'])
-        elif type == 'mean_shift':
-            model_ = cluster.MeanShift(ini_params['bandwidth'],
-                                                       ini_params['seeds'],
-                                                       ini_params['bin_seeding'],
-                                                       ini_params['min_bin_freq'],
-                                                       ini_params['cluster_all'],
-                                                       ini_params['n_jobs'])
-        elif type == 'spectral':
-            model_ = cluster.SpectralClustering(ini_params['n_clusters'],
-                                             ini_params['eigen_solver'],
-                                             ini_params['random_state'],
-                                             ini_params['n_init'],
-                                             ini_params['gamma'],
-                                             ini_params['affinity'],
-                                             ini_params['n_neighbors'],
-                                             ini_params['eigen_tol'],
-                                             ini_params['assign_labels'],
-                                             ini_params['degree'],
-                                             ini_params['coef0'],
-                                             ini_params['kernel_params'],
-                                             ini_params['n_jobs']) 
-        elif type == 'agglomerative':
-            model_ = cluster.AgglomerativeClustering(ini_params['n_clusters'],
-                                                ini_params['affinity'],
-                                                ini_params['memory'],
-                                                ini_params['connectivity'],
-                                                ini_params['compute_full_tree'],
-                                                ini_params['linkage'],
-                                                ini_params['pooling_func'])
-        elif type == 'dbscan':
-            model_ = cluster.DBSCAN(ini_params['eps'],
-                                                ini_params['min_samples'],
-                                                ini_params['metric'],
-                                                ini_params['metric_params'],
-                                                ini_params['algorithm'],
-                                                ini_params['leaf_size'],
-                                                ini_params['n_jobs'])
-        elif type == 'birch':
-            model_ = cluster.Birch(ini_params['threshold'],
-                                                    ini_params['branching_factor'],
-                                                    ini_params['n_clusters'],
-                                                    ini_params['compute_labels'])
-        elif type == 'auto':
-            choose_model(X,y)
-        else:
-            raise NotImplementedError("This type is not implemented")
 
-        if type != 'auto':
+        if type == 'auto':
+            self.choose_model(X,y)
+            
+        elif type in self.supported_models.keys():
+            #Select the model from supported_models and get the data from ini_params into parameters
+                        
+            (model, param_tags) = self.supported_models[type]
+            parameters = {key:val for (key, val) in
+                          zip(param_tags, [ini_params.get(tag) for tag in param_tags])}
+            
+            self.model_ = model(parameters)
+
+            #Train the model
             if avoid_overfitting:
                 self.fit(X,y,n_splits= 10)
             else:
-                fit(X,y)
+                self.fit(X,y)
+        
         
   
     def fit(self, X, y = None, test_size = 0.25, random_state = 0, n_splits = 1):
-        """Fits the sample splitting the sample to avoid overfitting.
+        """
+        Fits the sample splitting the sample to avoid overfitting.
         Returns the scores of each iteration.
 
         :param X: data
@@ -173,10 +112,11 @@ class Clustering(object):
         :type model: LinearModel
         :type X: ndarray or scipy.sparse matrix, (n_samples, n_features)
         """
-        metric = cross_validate(estimator=model.model_,X=X,y=y,scoring='r2')
-        predictions = cross_val_predict(model.model_,X=X,y=y)
-        score = cross_val_score(model.model_, X, y)
-        return metric, predictions, score
+        pass
+        #metric = cross_validate(estimator=model.model_,X=X,y=y,scoring='r2')
+        #predictions = cross_val_predict(model.model_,X=X,y=y)
+        #score = cross_val_score(model.model_, X, y)
+        #return metric, predictions, score
 
     def choose_model(self,X,y = None):
         """Automatic model chooser.
@@ -187,16 +127,9 @@ class Clustering(object):
         :type X: ndarray or scipy.sparse matrix, (n_samples, n_features)
         :type y: ndarray, shape (n_samples,) or (n_samples, n_targets)
         """
-        #{'linear', 'polynomial',logistic','logisticcv','elasticnet','elasticnetcv','orthogonal','orthogonalcv','theil','sgd','perceptron','passive_aggressive'}
-        models = {'linear':linear_model.LinearRegression(),
-                  'logistic':linear_model.LogisticRegression(),
-                  'elasticnet':linear_model.ElasticNet(),
-                  'orthogonal':linear_model.OrthogonalMatchingPursuit(),
-                  'theil':linear_model.TheilSenRegressor(),
-                  'sgd':linear_model.SGDRegressor(),
-                  'passive_agressive':linear_model.PassiveAggressiveRegressor()}
+
         scores = {}
-        for name,model in models:
+        for name,model in supported_models:
             scores[name] = []
 
         sss = StratifiedShuffleSplit(10, 0.25)
@@ -205,7 +138,7 @@ class Clustering(object):
             y_train, y_test = y[train_index], y[test_index]
             for name, model in models:
                 mode.fit(X_train,y_train)
-                scores[name].append(model.score(X_test,y_test))
+                scores[name].append(metrics.accuracy_score(y_true=y_train,y_pred=model.predict(X_test)))
         
         #Choose http://blog.minitab.com/blog/adventures-in-statistics-2/how-to-choose-the-best-regression-model
         index = None
@@ -216,4 +149,100 @@ class Clustering(object):
                 index = name
         _model = models[index]
 
+    def get_metrics(self, X, y = None):
+        """
+        Returns a dictionary of the metrics of the model. If y is not provided, no metrics that require the true labels will be provided.
+        More info:http://scikit-learn.org/stable/modules/clustering.html#clustering-performance-evaluation
+        
+        :param X: data
+        :param y: target
 
+        :type X: ndarray or scipy.sparse matrix, (n_samples, n_features)
+        :type y: ndarray, shape (n_samples,) or (n_samples, n_targets)
+
+        """
+        metrict_dict = {} #Adjusted Rand Index, Mutual Information
+        labels_true = y
+        labels_pred = self.model_.predict(X)
+        labels = model_.labels_
+
+        if y != None:
+            #These metrics require the knowledge of the ground truth classes
+            metrict_dict['ARI'] = metrics.adjusted_rand_score(labels_true, labels_pred)
+            metrict_dict['MIS'] = metrics.adjusted_mutual_info_score(labels_true, labels_pred)
+            metrict_dict['homogeneity'] =  metrics.homogeneity_score(labels_true, labels_pred)
+            metrict_dict['completeness'] =  metrics.completeness_score(labels_true, labels_pred)
+            metrict_dict['v_measure'] =  metrics.v_measure_score(labels_true, labels_pred)
+            metrict_dict['FMS'] = metrics.fowlkes_mallows_score(labels_true, labels_pred)
+
+        #These metrics DON'T require the knowledge of the ground truth classes
+        metrict_dict['SS'] = metrics.silhouette_score(X, labels, metric='euclidean')
+        metrict_dict['CHI'] = metrics.calinski_harabaz_score(X, labels) 
+
+        return metrict_dict
+
+
+
+
+    #if type == 'kmeans' or type == 'polynomial':
+        #    model_ = cluster.KMeans(ini_params['n_clusters'],
+        #                                            ini_params['init'],
+        #                                            ini_params['n_init'],
+        #                                            ini_params['max_iter'],
+        #                                            ini_params['tol'],
+        #                                            ini_params['precompute_distances'],
+        #                                            ini_params['verbose'],
+        #                                            ini_params['random_state'],
+        #                                            ini_params['copy_x'],
+        #                                            ini_params['n_jobs'],
+        #                                            ini_params['algorithm']) 
+        #elif type == 'affinity':
+        #    model_ = cluster.AffinityPropagation(ini_params['damping'],
+        #                                             ini_params['max_iter'],
+        #                                             ini_params['convergence_iter'],
+        #                                             ini_params['copy'],
+        #                                             ini_params['preference'],
+        #                                             ini_params['affinity'],
+        #                                             ini_params['verbose'])
+        #elif type == 'mean_shift':
+        #    model_ = cluster.MeanShift(ini_params['bandwidth'],
+        #                                               ini_params['seeds'],
+        #                                               ini_params['bin_seeding'],
+        #                                               ini_params['min_bin_freq'],
+        #                                               ini_params['cluster_all'],
+        #                                               ini_params['n_jobs'])
+        #elif type == 'spectral':
+        #    model_ = cluster.SpectralClustering(ini_params['n_clusters'],
+        #                                     ini_params['eigen_solver'],
+        #                                     ini_params['random_state'],
+        #                                     ini_params['n_init'],
+        #                                     ini_params['gamma'],
+        #                                     ini_params['affinity'],
+        #                                     ini_params['n_neighbors'],
+        #                                     ini_params['eigen_tol'],
+        #                                     ini_params['assign_labels'],
+        #                                     ini_params['degree'],
+        #                                     ini_params['coef0'],
+        #                                     ini_params['kernel_params'],
+        #                                     ini_params['n_jobs']) 
+        #elif type == 'agglomerative':
+        #    model_ = cluster.AgglomerativeClustering(ini_params['n_clusters'],
+        #                                        ini_params['affinity'],
+        #                                        ini_params['memory'],
+        #                                        ini_params['connectivity'],
+        #                                        ini_params['compute_full_tree'],
+        #                                        ini_params['linkage'],
+        #                                        ini_params['pooling_func'])
+        #elif type == 'dbscan':
+        #    model_ = cluster.DBSCAN(ini_params['eps'],
+        #                                        ini_params['min_samples'],
+        #                                        ini_params['metric'],
+        #                                        ini_params['metric_params'],
+        #                                        ini_params['algorithm'],
+        #                                        ini_params['leaf_size'],
+        #                                        ini_params['n_jobs'])
+        #elif type == 'birch':
+        #    model_ = cluster.Birch(ini_params['threshold'],
+        #                                            ini_params['branching_factor'],
+        #                                            ini_params['n_clusters'],
+        #                                            ini_params['compute_labels'])
