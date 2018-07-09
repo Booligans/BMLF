@@ -16,7 +16,7 @@ x Jacknife Regression
 Implementing Polynomial regression as Linear regression: https://stats.stackexchange.com/questions/58739/polynomial-regression-using-scikit-learn
 """
 
-class LinearModel:
+class LinearModel(object):
     """This class encapsulates a linear model."""
 
     def __init__(self, type = 'auto', ini_params = {}, X = None, y = None, avoid_overfitting = True):
@@ -241,7 +241,7 @@ class LinearModel:
         """Gets the parameters of the model."""
         self.model_.get_params()
 
-    def compare(self, model, X, y = None):
+    def compare(self, model : LinearModel, X, y):
         """Compares the score of a sample in two models.
         Returns a crossvalidation of metrics, predictions and score.
         
@@ -250,10 +250,17 @@ class LinearModel:
         :type model: LinearModel
         :type X: ndarray or scipy.sparse matrix, (n_samples, n_features)
         """
-        metric = cross_validate(estimator=model.model_,X=X,y=y,scoring='r2')
-        predictions = cross_val_predict(model.model_,X=X,y=y)
-        score = cross_val_score(model.model_, X, y)
-        return metric, predictions, score
+        y_pred = model_.predict(X)
+
+        metrics_dict = {}
+        metrics_dict['EVS'] = metrics.explained_variance_score(y, y_pred)
+        metrics_dict['MeanAE'] = metrics.mean_absolute_error(y, y_pred)
+        metrics_dict['MSE'] = metrics.mean_squared_error(y, y_pred)
+        metrics_dict['MSLE'] = metrics.mean_squared_log_error(y, y_pred)
+        metrics_dict['MedAE'] = metrics.median_absolute_error(y, y_pred)
+        metrics_dict['R2'] = metrics.r2_score(y, y_pred)
+        
+        return metrics_dict
 
     def choose_model(self,X,y = None):
         """Automatic model chooser.
@@ -264,6 +271,7 @@ class LinearModel:
         :type X: ndarray or scipy.sparse matrix, (n_samples, n_features)
         :type y: ndarray, shape (n_samples,) or (n_samples, n_targets)
         """
+
         #{'linear', 'polynomial',logistic','logisticcv','elasticnet','elasticnetcv','orthogonal','orthogonalcv','theil','sgd','perceptron','passive_aggressive'}
         models = {'linear':linear_model.LinearRegression(),
                   'logistic':linear_model.LogisticRegression(),
