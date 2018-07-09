@@ -1,5 +1,5 @@
 from sklearn import linear_model
-from sklearn.model_selection import cross_val_predict, cross_val_score, cross_validate
+from sklearn.model_selection import StratifiedShuffleSplit, cross_val_predict, cross_val_score, cross_validate
 from copy import copy, deepcopy
 
 """
@@ -18,7 +18,6 @@ Implementing Polynomial regression as Linear regression: https://stats.stackexch
 
 class LinearModel:
     """This class encapsulates a linear model."""
-    self.model_ = None
 
     def __init__(self, type = 'auto', ini_params = {}, X = None, y = None, avoid_overfitting = True):
         """ Initiates the Regression class.
@@ -47,10 +46,10 @@ class LinearModel:
         self.model_ = None
         
         if type == 'linear' or type == 'polynomial':
-            model_ = linear_model.LinearRegression(ini_params['fit_intercept'],
+            model_ = linear_model.LinearRegression('''ini_params['fit_intercept'],
                                                     ini_params['normalize'],
                                                     ini_params['copy_x'],
-                                                    ini_params['n_jobs']) 
+                                                    ini_params['n_jobs']''') 
         elif type == 'logistic':
             model_ = linear_model.LogisticRegression(ini_params['penalty'],
                                                      ini_params['dual'],
@@ -191,7 +190,7 @@ class LinearModel:
                                                              ini_params['average'],
                                                              ini_params['n_iter'])
         elif type == 'auto':
-            choose_model(X,y)
+            self.choose_model(X,y)
         else:
             raise NotImplementedError("This type is not implemented")
 
@@ -203,7 +202,7 @@ class LinearModel:
         
   
     def fit(self, X, y = None, test_size = 0.25, random_state = 0, n_splits = 1):
-        """Fits the sample splitting the sample to avoid overfitting.
+        """Fits the sample splitting it to avoid overfitting.
         Returns the scores of each iteration.
 
         :param X: data
@@ -217,9 +216,9 @@ class LinearModel:
         """
         #https://towardsdatascience.com/train-test-split-and-cross-validation-in-python-80b61beca4b6
         scores = []
-        sss = StratifiedShuffleSplit(n_iterations, test_size, random_state)
-        for train_index, test_index in sss.get_n_splits(X,y):
-            X_train, X_test = X[train_index], X[test_index]
+        sss = StratifiedShuffleSplit(n_splits, test_size, random_state=random_state)
+        for train_index, test_index in sss.split(X,y):
+            X_train = 
             y_train, y_test = y[train_index], y[test_index]
             model_.fit(X_train,y_train)
             scores.append(model_.score(X_test, y_test))
@@ -242,7 +241,7 @@ class LinearModel:
         """Gets the parameters of the model."""
         self.model_.get_params()
 
-    def compare(self, model : LinearModel, X, y = None):
+    def compare(self, model, X, y = None):
         """Compares the score of a sample in two models.
         Returns a crossvalidation of metrics, predictions and score.
         
@@ -274,11 +273,11 @@ class LinearModel:
                   'sgd':linear_model.SGDRegressor(),
                   'passive_agressive':linear_model.PassiveAggressiveRegressor()}
         scores = {}
-        for name,model in models:
+        for name,model in models.items():
             scores[name] = []
 
         sss = StratifiedShuffleSplit(10, 0.25)
-        for train_index, test_index in sss.get_n_splits(X,y):
+        for train_index, test_index in sss.split(X,y):
             X_train, X_test = X[train_index], X[test_index]
             y_train, y_test = y[train_index], y[test_index]
             for name, model in models:
