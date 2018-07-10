@@ -3,7 +3,7 @@ from sklearn.base import clone
 from sklearn.neural_network import MLPClassifier
 from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
 from sklearn.model_selection import StratifiedShuffleSplit
-import sklearn.metrics
+from sklearn import metrics
 
 """
 Support Vector Machine
@@ -31,7 +31,8 @@ class MultiModelClassifier:
                         'gaussian_nb':{'class':GaussianNB,
                                        'params':GaussianNB.get_params(GaussianNB).keys(),
                                        'pred_prob':GaussianNB.predict_proba},
-                        
+
+                          
                         'multinomial_nb':{'class':MultinomialNB,
                                           'params':MultinomialNB.get_params(MultinomialNB).keys(),
                                           'pred_prob':MultinomialNB.predict_proba},
@@ -74,6 +75,8 @@ class MultiModelClassifier:
         
         self.__type = type
 
+        self.__guess_problem(y)
+
         if type == 'auto':
             self.choose_model(X,y)
             
@@ -81,7 +84,8 @@ class MultiModelClassifier:
         elif type in self.__supported_models.keys():
             #Select the model from __supported_models and get the data from ini_params into parameters
                         
-            (model, param_tags) = self.__supported_models[type]
+            model = self.__supported_models[type]['class']
+            param_tags = self.__supported_models[type]['params']
             parameters = {key:ini_params.get(key) for key in param_tags if key in ini_params.keys()}
             
             self.__model = model(**parameters)
@@ -145,7 +149,7 @@ class MultiModelClassifier:
         :type X: array-like, shape = (n_samples, n_features)
         :type y: array-like, shape = (n_samples) or (n_samples, n_outputs)
         """
-        self.__model.score(X, y)
+        return self.__model.score(X, y)
         
 
     def set_parameters(self, **parameters):
@@ -181,8 +185,14 @@ class MultiModelClassifier:
         
         if self.__problem == 'binary':
             #Binary-only metrics
+
+
+            ####### THIS FAILS ##########
+            
             scores['PreRec'] = (metrics.precision_recall_curve(y, y_pred_prob),
-                                metric.precision_recall_curve(y, other_y_pred_prob))
+                                metrics.precision_recall_curve(y, [x for x in map(max,other_y_pred_prob)]))
+
+            
             scores['ROC'] = (metrics.roc_curve(y, y_pred_prob),
                              metrics.roc_curve(y, other_y_pred_prob))
         scores['Kappa'] = (metrics.cohen_kappa_score(y, y_pred),
