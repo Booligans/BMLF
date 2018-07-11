@@ -4,6 +4,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn import metrics
+import numpy as np
 
 """
 Support Vector Machine
@@ -185,21 +186,17 @@ class MultiModelClassifier:
         
         if self.__problem == 'binary':
             #Binary-only metrics
-
-
-            ####### THIS FAILS ##########
-            
+                        
             scores['PreRec'] = (metrics.precision_recall_curve(y, y_pred_prob),
-                                metrics.precision_recall_curve(y, [x for x in map(max,other_y_pred_prob)]))
-
+                                metrics.precision_recall_curve(y, other_y_pred_prob))
             
             scores['ROC'] = (metrics.roc_curve(y, y_pred_prob),
                              metrics.roc_curve(y, other_y_pred_prob))
         scores['Kappa'] = (metrics.cohen_kappa_score(y, y_pred),
                            metrics.cohen_kappa_score(y, other_y_pred))
         scores['Confusion'] = (metrics.confusion_matrix(y, y_pred),
-                               metrics.confusion_matric(y, other_y_pred))
-        scores['HL'] = (metrics.hinge_loss(y, y_prob_pred),
+                               metrics.confusion_matrix(y, other_y_pred))
+        scores['HL'] = (metrics.hinge_loss(y, y_pred_prob),
                         metrics.hinge_loss(y, other_y_pred_prob))
         scores['MCC'] = (metrics.matthews_corrcoef(y, y_pred),
                          metrics.matthews_corrcoef(y, other_y_pred))
@@ -229,5 +226,6 @@ class MultiModelClassifier:
 
     def __predict_prob(self, X):
         #Probability/decision function for the given data
-        return self.__supported_models[self.__type]['pred_prob'](self.__model, X)
+        result = self.__supported_models[self.__type]['pred_prob'](self.__model, X)
+        return result if len(result.shape) == 1 else result.max(1)
         

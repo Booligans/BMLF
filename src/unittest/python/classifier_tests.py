@@ -17,7 +17,6 @@ class TestMultiModelClassifier(TestCase):
         #Test predictions
         self.assertEqual(mmc_svm.get_model().predict(5), 1)
         self.assertEqual(mmc_svm.get_model().predict(-5), 0)
-        print(mmc_svm.scores_)
 
 
     def test_scores_compare(self):
@@ -38,7 +37,7 @@ class TestMultiModelClassifier(TestCase):
 
         print("Multiple metrics\nmetric | svm | gnb")
 
-        for metric, (svm, gnb) in comparison:
+        for metric, (svm, gnb) in comparison.items():
             print(metric + ' ' + str(svm) + ' ' + str(gnb))
         
         
