@@ -1,4 +1,5 @@
 from unittest import TestCase
+from sklearn.svm import SVC
 import numpy as np
 
 from ml.classifier.classifier import MultiModelClassifier
@@ -10,6 +11,22 @@ class TestMultiModelClassifier(TestCase):
 
     X_test = np.array([-4, -2, 2, 4]).reshape(-1,1)
     y_test = np.array([0, 0, 1, 1])
+
+    def test_init(self):
+        mmc = MultiModelClassifier('svm', C=1.0, kernel='linear', tol=0.1)
+
+        self.assertIsInstance(mmc.get_model(), SVC)
+        
+        params = mmc.get_params()
+        self.assertEqual(params['C'], 1.0)
+        self.assertEqual(params['kernel'], 'linear')
+        self.assertEqual(params['tol'], 0.1)
+
+        params['tol'] = 0.05
+
+        mmc.set_params(**params)
+
+        self.assertEqual(mmc.get_params()['tol'], 0.05)
     
     def test_svm(self):
         mmc_svm = MultiModelClassifier('svm', X=self.X, y=self.y)

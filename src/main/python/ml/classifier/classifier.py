@@ -1,10 +1,8 @@
 from sklearn import svm
-from sklearn.base import clone
 from sklearn.neural_network import MLPClassifier
 from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
-from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn import metrics
-import numpy as np
+from ml.ml_model import MlModel
 
 """
 Support Vector Machine
@@ -12,7 +10,7 @@ Multilayer Perceptron
 Naive Bayes (Gaussian, Multinomial, Bernoulli)
 """
 
-class MultiModelClassifier:
+class MultiModelClassifier(MlModel):
     """A general classifier capable of using different models."""
     
     #Maps type parameter to sklearn classes and other information. Only for internal use
@@ -52,7 +50,7 @@ class MultiModelClassifier:
         it will be ingored.
 
         The ini_params parameter is a dictinary that contains all the parameters required for
-        the initialization of the model using the format name=value}, in which the names
+        the initialization of the model using the format name=value, in which the names
         must match the names of the parameters in the sklearn library (in lower case).
         
         X and y are provided, the model will be directly trained using it.
@@ -73,74 +71,29 @@ class MultiModelClassifier:
         >>> model = MultiModelClassifier('svm', {'kernel':'rbf'})
         """
         
-        
-        self.__type = type
-
-        self.__guess_problem(y)
-
         if type == 'auto':
+            super().__init__('auto', None)
             self.choose_model(X,y)
             
-
         elif type in self.__supported_models.keys():
             #Select the model from __supported_models and get the data from ini_params into parameters
                         
             model = self.__supported_models[type]['class']
             param_tags = self.__supported_models[type]['params']
             parameters = {key:ini_params.get(key) for key in param_tags if key in ini_params.keys()}
-            
-            self.__model = model(**parameters)
+
+            super().__init__(type, model(**parameters))
 
             #Train the model
-            if avoid_overfitting:
-                self.scores_ = self.fit(X,y,n_splits=10)
-            else:
-                self.scores_ = self.fit(X,y)
+            if not X is None and not y is None:
+                if avoid_overfitting:
+                    self.scores_ = self.fit(X,y,n_splits=10)
+                else:
+                    self.scores_ = self.fit(X,y)
 
         else:
             print('Unsupported model: ' + type)
-
-
-    def fit(self, X, y = None, test_size = 0.25, random_state = 0, n_splits = 1):
-        """Fits the sample splitting it to avoid overfitting.
-        Returns the scores of each iteration.
-         
-        :param X: data
-        :param y: target
-        :param test_size: size of the test, must be between 0 and 1
-         
-        :type X: ndarray or scipy.sparse matrix, (n_samples, n_features)
-        :type y: ndarray, shape (n_samples,) or (n_samples, n_targets)
-        :type test_size: float
-        """
-
-        #We will fit and store the model and its score for each train/test split,
-        models_scores = [[clone(self.__model),0] for i in range(n_splits)]
-        best_score = 0
-        best_model = 0
-        
-        #Generate the splits with constant relative category fequency
-        sss = StratifiedShuffleSplit(n_splits, test_size, random_state=random_state)
-        
-        for i, (train, test) in enumerate(sss.split(X,y)):
-            X_train, y_train = zip(*[(X[i],y[i]) for i in train])
-            X_test, y_test = zip(*[(X[i],y[i]) for i in test])
-        
-            model = models_scores[i][0].fit(X_train, y_train)
-    
-            #The scores are evaluated with the test samples
-            models_scores[i][1] = model.score(X_test, y_test)
-            if models_scores[i][1] > best_score:
-                best_score = models_scores[i][1]
-                best_model = i
-
-        #Use the best model found
-        self.__model = models_scores[best_model][0]
-
-        #Return the list of scores
-        return [e for e in zip(*models_scores)][1]
-        
-         
+            
     def score(self, X, y):
         """
         Returns the mean accuracy on the given data.
@@ -150,24 +103,8 @@ class MultiModelClassifier:
         :type X: array-like, shape = (n_samples, n_features)
         :type y: array-like, shape = (n_samples) or (n_samples, n_outputs)
         """
-        return self.__model.score(X, y)
-        
-
-    def set_parameters(self, **parameters):
-        """Sets the parameters of a model.
-        :param parameters: parameters of the underlying model
-        :type parameters: keyword arguments
-        """
-        self.__model.set_parameters(parameters)
-
-    def get_params(self):
-        """Gets the parameters of the model."""
-        return self.__model.get_params()
-
-    def get_model(self):
-        """Returns the sklearn model being used as classifier."""
-        return self.__model
-        
+        return super().score(X, y)
+            
     def compare(self, model, X, y):
         """Compares the score of a sample in two models.
         Returns a crossvalidation of metrics, predictions and score.
@@ -184,6 +121,8 @@ class MultiModelClassifier:
         other_y_pred = model.predict(X)
         other_y_pred_prob = model.__predict_prob(X)
         
+        self.__guess_problem(y)
+        
         if self.__problem == 'binary':
             #Binary-only metrics
                         
@@ -192,6 +131,7 @@ class MultiModelClassifier:
             
             scores['ROC'] = (metrics.roc_curve(y, y_pred_prob),
                              metrics.roc_curve(y, other_y_pred_prob))
+            
         scores['Kappa'] = (metrics.cohen_kappa_score(y, y_pred),
                            metrics.cohen_kappa_score(y, other_y_pred))
         scores['Confusion'] = (metrics.confusion_matrix(y, y_pred),
@@ -203,29 +143,22 @@ class MultiModelClassifier:
 
         return scores
 
-        
-    def predict(self, X):
-        """Perform classification on given samples.
-        :param X: Samples to classify
-        :type X: ndarray, shape = (n_samples, n_features)
-        """
-        return self.__model.predict(X)
-
+    
     def choose_model(self, X, y):
         pass
     
     def __guess_problem(self, y):
         #Guess the type of classification problem from the given labels.
-            n_classes = len(set(y))
-            if n_classes == 2:
-                self.__problem = 'binary'
-            elif n_classes > 2:
-                self.__problem = 'multiclass'
-            else:
-                raise ValueError('Expected at least two different labels')
+        n_classes = len(set(y))
+        if n_classes == 2:
+            self.__problem = 'binary'
+        elif n_classes > 2:
+            self.__problem = 'multiclass'
+        else:
+            raise ValueError('Expected at least two different labels')
 
     def __predict_prob(self, X):
         #Probability/decision function for the given data
-        result = self.__supported_models[self.__type]['pred_prob'](self.__model, X)
+        result = self.__supported_models[self._MlModel__type]['pred_prob'](self._MlModel__model, X)
         return result if len(result.shape) == 1 else result.max(1)
         
