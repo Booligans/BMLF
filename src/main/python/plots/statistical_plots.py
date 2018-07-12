@@ -26,7 +26,7 @@ class ScatterPlot(Plot):
         super().__init__(name,data,type,x_label,y_label)
     
     def plot(self):
-        plt.scatter(self.data[0], self.data[1], basex=10,basey=10)
+        plt.scatter(self.data[0], self.data[1])
 
 class Histogram2D(Plot):
     """Class encapsulating a heatmap representing a 2D histogram."""
