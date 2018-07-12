@@ -1,4 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+import os
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -26,42 +27,24 @@ class Ui_MainWindow(object):
         self.tab_3 = QtWidgets.QWidget()
         self.tab_3.setObjectName("tab_3")
         self.tabWidget.addTab(self.tab_3, "")
-        self.listWidget = QtWidgets.QListWidget(self.centralwidget)
-        self.listWidget.setStyleSheet( "QListWidget{background: rgb(216,233,250);}")
-        self.listWidget.setGeometry(QtCore.QRect(10, 10, 251, 631))
-        self.listWidget.setObjectName("listWidget")
+        file = str(QtWidgets.QFileDialog.getExistingDirectory(MainWindow, "Select your workspace"))
+        self.projectTreeWidget = projectTree(self.centralwidget, file)
         MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 959, 21))
-        self.menubar.setStyleSheet( "QMenuBar{background: rgb(239,246,253);}")
-        self.menubar.setObjectName("menubar")
-        self.menuFile = QtWidgets.QMenu(self.menubar)
-        self.menuFile.setObjectName("menuFile")
-        self.menuEdit = QtWidgets.QMenu(self.menubar)
-        self.menuEdit.setObjectName("menuEdit")
+        self.menubar = MenuBar(MainWindow, self)
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setStyleSheet( "QStatusBar{background: rgb(239,246,253); border-top:1px solid white;}")
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
-        self.actionUndo = QtWidgets.QAction(MainWindow)
-        self.actionUndo.setObjectName("actionUndo")
-        self.actionRedo = QtWidgets.QAction(MainWindow)
-        self.actionRedo.setObjectName("actionRedo")
-        self.menuEdit.addAction(self.actionUndo)
-        self.menuEdit.addAction(self.actionRedo)
-        self.menuEdit.addSeparator()
-        self.menubar.addAction(self.menuFile.menuAction())
-        self.menubar.addAction(self.menuEdit.menuAction())
         self.toolbar = ToolBar(MainWindow)
         MainWindow.addToolBar( QtCore.Qt.TopToolBarArea , self.toolbar )
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-		
-    def resizeEvent(self, event):
-        MainWindow.resize(self.width(), self.height())
+
+    def resizeEvent(self, MainWindow):
+        MainWindow.resize(500, 200)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -70,10 +53,6 @@ class Ui_MainWindow(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Data"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Visualization"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("MainWindow", "Analysis"))
-        self.menuFile.setTitle(_translate("MainWindow", "File"))
-        self.menuEdit.setTitle(_translate("MainWindow", "Edit"))
-        self.actionUndo.setText(_translate("MainWindow", "Undo"))
-        self.actionRedo.setText(_translate("MainWindow", "Redo"))
 			
 class ToolButton(QtWidgets.QToolButton):
     def __init__(self, *args):
@@ -116,4 +95,117 @@ class TableWidget(QtWidgets.QTableWidget):
         self.verticalHeader().setHighlightSections(True)
         self.verticalHeader().setSortIndicatorShown(False)
         self.verticalHeader().setStretchLastSection(False)
+
+class MenuBar(QtWidgets.QMenuBar):
+    def __init__(self, *args):
+        QtWidgets.QMenuBar.__init__(self, args[0])
+        self.setGeometry(QtCore.QRect(0, 0, 959, 21))
+        self.setStyleSheet( "QMenuBar{background: rgb(239,246,253);}")
+        self.setObjectName("menubar")
+        self.menuFile = QtWidgets.QMenu(self)
+        self.menuFile.setObjectName("menuFile")
+        self.menuEdit = QtWidgets.QMenu(self)
+        self.menuEdit.setObjectName("menuEdit")
+        actionOpen = Action(self, "actionOpen", lambda: self.opened(), "Open")
+        self.menuNew = QtWidgets.QMenu(self)
+        self.menuNew.setObjectName("menuNew")
+        actionMLModule = Action(self, "actionMLModule", lambda: self.newML(args[1]), "ML Module")
+        actionSwWorkspace = Action(self, "actionSwWorkspace", lambda: self.sw_workspace(args[1]), "Switch Workspace")
+        actionUndo = Action(self, "actionUndo", lambda: self.undo(), "Undo")
+        actionRedo = Action(self, "actionRedo", lambda: self.redo(), "Redo")
+        self.menuNew.addAction(actionMLModule)
+        self.menuFile.addAction(self.menuNew.menuAction())
+        self.menuFile.addAction(actionOpen)
+        self.menuFile.addAction(actionSwWorkspace)
+        self.menuEdit.addAction(actionUndo)
+        self.menuEdit.addAction(actionRedo)
+        self.menuEdit.addSeparator()
+        self.addAction(self.menuFile.menuAction())
+        self.addAction(self.menuEdit.menuAction())
+		
+        _translate = QtCore.QCoreApplication.translate
+        self.menuFile.setTitle(_translate("MainWindow", "File"))
+        self.menuEdit.setTitle(_translate("MainWindow", "Edit"))
+        self.menuNew.setTitle(_translate("MainWindow", "New"))
+
+    def opened(self):
+        QtWidgets.QFileDialog.getOpenFileName()
+	
+    def sw_workspace(self, Ui_MainWindow):
+        file = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select your workspace"))
+        Ui_MainWindow.projectTreeWidget.reset()
+        Ui_MainWindow.projectTreeWidget.load_project_structure(file, Ui_MainWindow.projectTreeWidget)
+	
+    def undo(self):
+        print("undo")
+
+    def redo(self):
+        print("redo")
+
+    def newModule(self):
+	    Option = Ui_Dialog()
+
+    def newML(self, Ui_MainWindow):
+        self.tab_new = QtWidgets.QWidget()
+        self.tab_new.setObjectName("tab")
+        Ui_MainWindow.tabWidget.addTab(self.tab_new, "ML")
+
+class projectTree(QtWidgets.QTreeWidget):
+    def __init__(self, *args):
+        QtWidgets.QTreeWidget.__init__(self, args[0])
+        self.setGeometry(QtCore.QRect(10, 10, 251, 531))
+        self.setObjectName("projectTreeWidget")
+        self.setHeaderLabel("Projects")
+        self.setStyleSheet( "QTreeWidget{background: rgb(216,233,250);}")
+        self.load_project_structure(args[1], self)
+
+    def reset(self):
+        iterator = QtWidgets.QTreeWidgetItemIterator(self, QtWidgets.QTreeWidgetItemIterator.All)
+        while iterator.value():
+            iterator.value().takeChildren()
+            iterator +=1
+        i = self.topLevelItemCount()
+        while i > -1:
+            self.takeTopLevelItem(i)
+            i -= 1
+
+    def load_project_structure(self, startpath, tree):
+        """
+        Load Project structure tree
+        :param startpath: 
+        :param tree: 
+        :return: 
+        """
+        for element in os.listdir(startpath):
+            path_info = startpath + "/" + element
+            parent_itm = QtWidgets.QTreeWidgetItem(tree, [os.path.basename(element)])
+            if os.path.isdir(path_info):
+                self.load_project_structure(path_info, parent_itm)
+                parent_itm.setIcon(0, QtGui.QIcon('assets/folder.png'))
+            else:
+                parent_itm.setIcon(0, QtGui.QIcon('assets/file.png'))
+
+class Ui_Dialog(object):
+    def setupUi(self, Dialog):
+        Dialog.setObjectName("Dialog")
+        Dialog.resize(508, 300)
+        self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
+        self.buttonBox.setGeometry(QtCore.QRect(150, 250, 341, 32))
+        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setObjectName("buttonBox")
+        self.sl_value = QtWidgets.QSlider(Dialog)
+        self.sl_value.setGeometry(QtCore.QRect(220, 120, 161, 31))
+        self.sl_value.setOrientation(QtCore.Qt.Horizontal)
+        self.sl_value.setObjectName("sl_value")
+        self.buttonBox.accepted.connect(Dialog.accept)
+        self.buttonBox.rejected.connect(Dialog.reject)
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+class Action(QtWidgets.QAction):
+    def __init__(self, *args):
+        QtWidgets.QAction.__init__(self, args[0])
+        self.setObjectName(args[1])
+        self.triggered.connect(args[2])
+        self.setText(QtCore.QCoreApplication.translate("MainWindow", args[3]))
 
