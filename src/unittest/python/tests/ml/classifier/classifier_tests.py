@@ -1,5 +1,7 @@
 from unittest import TestCase
 from sklearn.svm import SVC
+from sklearn.neural_network import MLPClassifier
+from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
 import numpy as np
 
 from ml.classifier.classifier import MultiModelClassifier
@@ -13,9 +15,22 @@ class TestMultiModelClassifier(TestCase):
     y_test = np.array([0, 0, 1, 1])
 
     def test_init(self):
-        mmc = MultiModelClassifier('svm', C=1.0, kernel='linear', tol=0.1)
+        #Test initialization for each model
+        svm = MultiModelClassifier('svm')
+        mlp = MultiModelClassifier('mlp')
+        gnb = MultiModelClassifier('gaussian_nb')
+        mnb = MultiModelClassifier('multinomial_nb')
+        bnb = MultiModelClassifier('bernoulli_nb')
 
-        self.assertIsInstance(mmc.get_model(), SVC)
+        self.assertIsInstance(svm.get_model(), SVC)
+        self.assertIsInstance(mlp.get_model(), MLPClassifier)
+        self.assertIsInstance(gnb.get_model(), GaussianNB)
+        self.assertIsInstance(mnb.get_model(), MultinomialNB)
+        self.assertIsInstance(bnb.get_model(), BernoulliNB)
+    
+    def test_params(self):
+        #Test model parameters
+        mmc = MultiModelClassifier('svm', C=1.0, kernel='linear', tol=0.1)
         
         params = mmc.get_params()
         self.assertEqual(params['C'], 1.0)
@@ -31,12 +46,13 @@ class TestMultiModelClassifier(TestCase):
     def test_svm(self):
         mmc_svm = MultiModelClassifier('svm', X=self.X, y=self.y)
 
-        #Test predictions
+        #Test predictions in training set
         self.assertEqual(mmc_svm.get_model().predict(5), 1)
         self.assertEqual(mmc_svm.get_model().predict(-5), 0)
 
 
     def test_scores_compare(self):
+        #Test comparison functions
         print("Comparing svm and gnb")
         
         mmc_svm = MultiModelClassifier('svm', X=self.X, y=self.y)
