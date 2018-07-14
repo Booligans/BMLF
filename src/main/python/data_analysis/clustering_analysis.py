@@ -1,6 +1,6 @@
-import data_analysis
+import ml_analysis
 
-class ClusteringAnalysis(DataAnalysis):
+class ClusteringAnalysis(MLAnalysis):
     """Class encapsulating clustering analysis over a dataset."""
     
     def __init__(self,model):

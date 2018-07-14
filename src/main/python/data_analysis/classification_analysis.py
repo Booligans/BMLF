@@ -1,5 +1,6 @@
+import ml_analysis
 
-class ClassificationAnalysis(DataAnalysis):
+class ClassificationAnalysis(MLAnalysis):
     """Class encapsulating a Classification Analysis on certain data."""
     
     def __init__(self, model):

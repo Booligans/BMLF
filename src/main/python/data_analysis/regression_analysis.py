@@ -1,5 +1,6 @@
+import ml_analysis
 
-class RegressionAnalysis:
+class RegressionAnalysis(MLAnalysis):
     """Class encapsulating regression analysis over certain data"""
     
     
