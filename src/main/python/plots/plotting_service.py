@@ -20,19 +20,19 @@ class PlottingService:
         """
                          
         if type=='Bar':
-            ret = BarPlot(args,kwargs)
+            ret = BarPlot(*args,**kwargs)
         elif type=='Pie':
-            ret = PieChart(args,kwargs)
+            ret = PieChart(*args,**kwargs)
         elif type=='Line':
-            ret = LinePlot(args,kwargs)
+            ret = LinePlot(*args,**kwargs)
         elif type=='Hist':
-            ret = ScatterPlot(args,kwargs)
+            ret = ScatterPlot(*args,**kwargs)
         elif type=='Box':
-            ret = BoxPlot(args,kwargs)
+            ret = BoxPlot(*args,**kwargs)
         elif type=='Scatter':
-            ret = ScatterPlot(args,kwargs)
+            ret = ScatterPlot(*args,**kwargs)
         elif type=='Hist2D':
-            ret = Histogram2D(args,kwargs)
+            ret = Histogram2D(*args,**kwargs)
         else:
             raise ValueError('There is no plot type ', type, '.')
             
