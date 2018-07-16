@@ -11,8 +11,16 @@ class Ui_MainWindow(object):
         MainWindow.setPalette(p)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
+
+        self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
+        self.gridLayout.setContentsMargins(11, 11, 11, 11)
+        self.gridLayout.setSpacing(6)
+        self.gridLayout.setObjectName("gridLayout")
+
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
-        self.tabWidget.setGeometry(QtCore.QRect(270, 10, 1091, 641))
+
+        self.gridLayout.addWidget(self.tabWidget, 0, 2, 10, -1)
+
         self.tabWidget.setIconSize(QtCore.QSize(16, 16))
         self.tabWidget.setObjectName("tabWidget")
         self.tab = QtWidgets.QWidget()
@@ -22,7 +30,14 @@ class Ui_MainWindow(object):
         self.tab_2 = QtWidgets.QWidget()
         self.tab_2.setObjectName("tab_2")
         self.graphicsView = QtWidgets.QGraphicsView(self.tab_2)
-        self.graphicsView.setGeometry(QtCore.QRect(0, 0, 801, 551))
+
+        self.gridLayout_tab_2 = QtWidgets.QGridLayout(self.tab_2)
+        self.gridLayout_tab_2.setContentsMargins(1, 1, 1, 1)
+        self.gridLayout_tab_2.setSpacing(0)
+        self.gridLayout_tab_2.setObjectName("gridLayout_tab_2")
+
+        self.gridLayout_tab_2.addWidget(self.graphicsView, 0, 0, 1, 1)
+        
         self.graphicsView.setObjectName("graphicsView")
         self.tabWidget.addTab(self.tab_2, "")
         self.menubar = MenuBar(MainWindow, self)
@@ -35,7 +50,7 @@ class Ui_MainWindow(object):
         MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolbar)
         self.file = QtWidgets.QFileDialog.getExistingDirectory(MainWindow, "Select your workspace")
         if (self.file != ""):
-            self.projectTreeWidget = projectTree(self.centralwidget, self.file)
+            self.projectTreeWidget = projectTree(self.centralwidget, self.file, self.gridLayout)
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -72,7 +87,15 @@ class TableWidget(QtWidgets.QTableWidget):
         "QHeaderView::section{""border-right:1px solid #D8D8D8;""border-bottom: 1px solid #D8D8D8;}"
         "QTableCornerButton::section{border-right:1px solid #D8D8D8;border-bottom: 1px solid #D8D8D8;background-color:#d8e9fa;}")
         QtWidgets.QTableWidget.__init__(self, *args)
-        self.setGeometry(QtCore.QRect(0, 0, 1081, 611))
+
+        self.gridLayout = QtWidgets.QGridLayout(args[0])
+        self.gridLayout.setContentsMargins(1, 1, 1, 1)
+        self.gridLayout.setSpacing(0)
+        self.gridLayout.setObjectName("gridLayout_tab_1")
+
+        self.gridLayout.addWidget(self, 0, 0, 1, 1)
+        
+        self.setGeometry(QtCore.QRect(0, 0, -1, -1))
         self.setAutoFillBackground(False)
         self.setShowGrid(True)
         self.setGridStyle(QtCore.Qt.SolidLine)
@@ -161,7 +184,8 @@ class MenuBar(QtWidgets.QMenuBar):
 class projectTree(QtWidgets.QTreeWidget):
     def __init__(self, *args):
         QtWidgets.QTreeWidget.__init__(self, args[0])
-        self.setGeometry(QtCore.QRect(10, 10, 251, 531))
+        args[2].addWidget(self, 0, 0, 6, 2)
+        
         self.setObjectName("projectTreeWidget")
         self.setHeaderLabel("Projects")
         self.setStyleSheet( "QTreeWidget{background: rgb(216,233,250);}")
