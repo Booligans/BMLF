@@ -2,6 +2,12 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from .dialog import *
 import os
 
+from plots.plotting_service import PlottingService
+
+import numpy as np
+from matplotlib.backends.backend_qt5agg import FigureCanvas
+from matplotlib.figure import Figure
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -29,16 +35,33 @@ class Ui_MainWindow(object):
         self.tabWidget.addTab(self.tab, "")
         self.tab_2 = QtWidgets.QWidget()
         self.tab_2.setObjectName("tab_2")
-        self.graphicsView = QtWidgets.QGraphicsView(self.tab_2)
 
         self.gridLayout_tab_2 = QtWidgets.QGridLayout(self.tab_2)
         self.gridLayout_tab_2.setContentsMargins(1, 1, 1, 1)
         self.gridLayout_tab_2.setSpacing(0)
         self.gridLayout_tab_2.setObjectName("gridLayout_tab_2")
 
-        self.gridLayout_tab_2.addWidget(self.graphicsView, 0, 0, 1, 1)
-        
-        self.graphicsView.setObjectName("graphicsView")
+        self.canvas = FigureCanvas(Figure())
+        self.gridLayout_tab_2.addWidget(self.canvas, 0, 0, 1, 1)
+
+
+
+        # ----Sample basic plots-----
+
+        #data
+        sp = np.linspace(0, 10, 501)
+        pie = np.array([1,2,3,1])
+
+        #We want a 2x2 grid of plots, with 0.5 vertical separation
+        axes = self.canvas.figure.subplots(2,2, gridspec_kw={'hspace':0.5})
+
+        #Call plotting module
+        PlottingService.build_plot('Awesomest project', 'Bar', 'Bar plot', pie, 'Bar', 'X axis', 'Y axis').plot(axes[0][0])
+        PlottingService.build_plot('Awesomest project', 'Pie', 'Pie plot', pie, 'Pie').plot(axes[0][1])
+        PlottingService.build_plot('Awesomest project', 'Line', 'Line plot', [sp, np.cos(sp)], 'Line').plot(axes[1][0])
+
+        #----------------------------
+
         self.tabWidget.addTab(self.tab_2, "")
         self.menubar = MenuBar(MainWindow, self)
         MainWindow.setMenuBar(self.menubar)

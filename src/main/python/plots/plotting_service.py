@@ -1,5 +1,5 @@
-import statistical_plots
-import basic_plots
+from .statistical_plots import *
+from .basic_plots import *
 
 class PlottingService:
     """Class that acts as a Plot factory in the BMLF framework."""

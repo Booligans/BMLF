@@ -1,6 +1,6 @@
 from matplotlib import pyplot as plt
 import numpy as np
-import plot
+from .plot import Plot
 #Obs: matplotlib interactive mode should be on for plotting via plt.ion()
 
 class BarPlot(Plot):
@@ -12,8 +12,13 @@ class BarPlot(Plot):
     def plot(self):
         plt.xlabel(self.x_label)
         plt.ylabel(self.y_label)
-        plt.bar(np.arange(len(data), data)
+        plt.bar(np.arange(len(self.data)), self.data)
 
+    def plot(self, axes):
+        axes.set_title(self.name)
+        axes.set_xlabel(self.x_label)
+        axes.set_ylabel(self.y_label)
+        axes.bar(np.arange(len(self.data)), self.data)
 
 class PieChart(Plot):
     """Class encapsulating a PieChart."""
@@ -22,7 +27,10 @@ class PieChart(Plot):
     
     def plot(self):
         plt.pie(self.data)
-
+                
+    def plot(self, axes):
+        axes.set_title(self.name)
+        axes.pie(self.data)
 
 class LinePlot(Plot):
     """Class encapsulating a LinePlot."""
@@ -31,3 +39,7 @@ class LinePlot(Plot):
     
     def plot(self):
         plt.plot(self.data[0], self.data[1])
+
+    def plot(self, axes):
+        axes.set_title(self.name)
+        axes.plot(self.data[0], self.data[1])

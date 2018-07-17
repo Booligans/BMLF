@@ -1,5 +1,5 @@
 from matplotlib import pyplot as plt
-import plot
+from .plot import Plot
 
 class Histogram(Plot):
     """Class encapsulating a Histogram."""

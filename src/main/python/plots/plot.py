@@ -29,7 +29,7 @@ class Plot(ABC):
         pass
     
     #might be unnecessary
-    @abstractmethod 
+    #@abstractmethod  Commented out so that subclasses can be instantiated
     def show():
         """Shows an already drawn plot."""
         pass
