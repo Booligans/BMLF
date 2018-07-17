@@ -1,5 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from ui.dialog import *
+from .dialog import *
 import os
 
 class Ui_MainWindow(object):

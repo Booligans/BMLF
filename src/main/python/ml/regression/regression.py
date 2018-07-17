@@ -1,6 +1,6 @@
 from sklearn import linear_model
 from sklearn.model_selection import ShuffleSplit, cross_val_predict, cross_val_score, cross_validate
-from ml.mlmodel import MLModel
+from ..mlmodel import MLModel
 from sklearn import metrics
 
 """
