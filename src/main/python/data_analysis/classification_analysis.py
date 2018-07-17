@@ -3,9 +3,10 @@ import ml_analysis
 class ClassificationAnalysis(MLAnalysis):
     """Class encapsulating a Classification Analysis on certain data."""
     
-    def __init__(self, model):
-        super().__init__(model)
+    def __init__(self, model, data):
+        super().__init__(model, data)
         
-    def draw(self):
-        """Draw classification analysis info."""
-        pass #pending 
+    def analyze():
+        super().analyze()
+        self.title = 'Classification analysis for ML model ' + model + '.'
+        #Decision boundary analysis

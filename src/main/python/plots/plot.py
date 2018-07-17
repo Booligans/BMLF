@@ -27,12 +27,6 @@ class Plot(ABC):
     def plot(self):
         """Draws the plot."""
         pass
-    
-    #might be unnecessary
-    #@abstractmethod  Commented out so that subclasses can be instantiated
-    def show():
-        """Shows an already drawn plot."""
-        pass
         
 
 class MultiPlot:
