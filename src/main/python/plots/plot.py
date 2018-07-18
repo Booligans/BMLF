@@ -24,7 +24,7 @@ class Plot(ABC):
         self.y_label = y_label
         
     @abstractmethod
-    def plot(self):
+    def plot(self, axes):
         """Draws the plot."""
         pass
         
@@ -59,11 +59,6 @@ class MultiPlot:
         """
         self.plots.pop(index)
         
-    def plot(self):
+    def plot(self, axes):
         """Draws the MultiPlot."""
         pass #Requires format specification
-        
-    #might be unnecessary
-    def show():
-        """Shows the drawn MultiPlot."""
-        pass

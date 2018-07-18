@@ -7,8 +7,8 @@ class Histogram(Plot):
     def __init__(self, name, data, type, x_label=None, y_label=None):
         super().__init__(name,data,type,x_label,y_label)
     
-    def plot(self):
-        plt.hist(self.data)
+    def plot(self, axes):
+        axes.hist(self.data)
 
 class BoxPlot(Plot):
     """Class encapsulating a Box/Box and Whiskers plot."""
@@ -16,8 +16,8 @@ class BoxPlot(Plot):
     def __init__(self, name, data, type, x_label=None, y_label=None):
         super().__init__(name,data,type,x_label,y_label)
     
-    def plot(self):
-        plt.boxplot(self.data)
+    def plot(self, axes):
+        axes.boxplot(self.data)
 
 class ScatterPlot(Plot):
     """Class ecnapsulating a Scatter plot."""
@@ -25,8 +25,8 @@ class ScatterPlot(Plot):
     def __init__(self, name, data, type, x_label=None, y_label=None):
         super().__init__(name,data,type,x_label,y_label)
     
-    def plot(self):
-        plt.scatter(self.data[0], self.data[1])
+    def plot(self, axes):
+        axes.scatter(self.data[0], self.data[1])
 
 class Histogram2D(Plot):
     """Class encapsulating a heatmap representing a 2D histogram."""
@@ -34,6 +34,6 @@ class Histogram2D(Plot):
     def __init__(self, name, data, type, x_label=None, y_label=None):
         super().__init__(name,data,type,x_label,y_label)
     
-    def plot(self):
-        plt.hist2d(self.data[0],self.data[1])
+    def plot(self, axes):
+        axes.hist2d(self.data[0],self.data[1])
         
