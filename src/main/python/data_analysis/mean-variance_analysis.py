@@ -1,4 +1,5 @@
 import ml_analysis
+import numpy as np
 class MeanVarianceAnalysis(MLAnalysis):
     """Class encapsulating mean-variance analysis over a dataset."""
     
@@ -12,18 +13,13 @@ class MeanVarianceAnalysis(MLAnalysis):
 		"""
 		return sum(list)/float(len(list))
 		
-	def variance(column):
+	def variance(list):
+		return np.var(list)
 		
-		acumulator_variance=0
-		for i from 0 to len(data)-1:
-			acumulator_variance= acumulator_variance+(data[i][column]*data[i][column])
-			
-		return acumulator_variance/float(len(data))
-		
-	def create_list(column):
+	def create_list(self,column):
 		list=[]
 		for i from 0 to len(data)-1:
-			list.append(data[i][column])
+			list.append(self.data[i][column])
 		return list
 	def mode(list)
 		""" This is a prototype function. It could be more efficient."""
@@ -47,7 +43,7 @@ class MeanVarianceAnalysis(MLAnalysis):
 			list=create_list(i)
 			if type(data[0][i]) is float:
 				mean_list.append(mean(list))
-				variance_list.append(variance(i))
+				variance_list.append(variance(list))
 			else:
 				mode_list.append(mode(list))
 			max_list.append(max(list))
