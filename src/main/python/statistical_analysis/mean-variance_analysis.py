@@ -31,8 +31,8 @@ class MeanVarianceAnalysis(MLAnalysis):
 	def min(list)
 		return min(list)
 		
-    def analyze():
-        super().analyze()
+	def analyze():
+		super().analyze()
 		mean_list=[]
 		variance_list=[]
 		mode_list=[]
