@@ -5,38 +5,34 @@ class MeanVarianceAnalysis(MLAnalysis):
     def __init__(self,model, data):
         super().__init__(model, data)
     
-	def mean(column):
+	def mean(list):
 		"""acumulator_mean=0
 		for user in data:
 			acumulator_mean= acumulator_mean+user[column]
 		"""
-		list=create_list(column)
 		return sum(list)/float(len(list))
 		
 	def variance(column):
 		
 		acumulator_variance=0
-		for user in data:
-			acumulator_variance= acumulator_variance+(user[column]*user[column])
+		for i from 0 to len(data)-1:
+			acumulator_variance= acumulator_variance+(data[i][column]*data[i][column])
 			
 		return acumulator_variance/float(len(data))
 		
 	def create_list(column):
 		list=[]
-		for user in data:
-			list.append(user[column])
+		for i from 0 to len(data)-1:
+			list.append(data[i][column])
 		return list
-	def mode(column)
+	def mode(list)
 		""" This is a prototype function. It could be more efficient."""
-		list=create_list(column)
 		return max(set(list), key=list.count)
 		
-	def max(column):
-		list=create_list(column)
+	def max(list):
 		return max(list)
 		
-	def min(column)
-		list=create_list(column)
+	def min(list)
 		return min(list)
 		
     def analyze():
@@ -47,14 +43,15 @@ class MeanVarianceAnalysis(MLAnalysis):
 		max_list=[]
 		min_list=[]
 		""" It is supposed that there is any user to check data[0]. """
-		for i in range(0,len(data[0])):
+		for i from 0 to len(data[0])-1:
+			list=create_list(i)
 			if type(data[0][i]) is float:
-				mean_list.append(mean(i))
+				mean_list.append(mean(list))
 				variance_list.append(variance(i))
 			else:
-				mode_list.append(mode(i))
-			max_list.append(max(i))
-			min_list.append(min(i))
+				mode_list.append(mode(list))
+			max_list.append(max(list))
+			min_list.append(min(list))
 				
 		self.text.append('Mean of quantitative characteristics:',mean_list)
 		self.text.append('Variance of quantitative characteristics:',variance_list)
