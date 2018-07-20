@@ -3,15 +3,13 @@ from abc import ABC,abstractmethod
 class Plot(ABC):
     """This class represents an abstract plot."""
     
-    def __init__(self, name, data, type, x_label=None, y_label=None, *args, **kwargs):
+    def __init__(self, name, data, x_label=None, y_label=None, *args, **kwargs):
         """Class constructor.
         
         :param name
         :type name: str
         :param data
         :type data: ndarray
-        :param type
-        :type type: str
         :param x_label
         :type x_label: str
         :param y_label
@@ -19,11 +17,10 @@ class Plot(ABC):
         """
         self.name = name
         self.data = data
-        self.type = type
         self.x_label = x_label
         self.y_label = y_label
         self.args = args
-        slef.kwargs = kwargs
+        self.kwargs = kwargs
         
     @abstractmethod
     def plot(self, axes):

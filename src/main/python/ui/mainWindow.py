@@ -56,9 +56,9 @@ class Ui_MainWindow(object):
         axes = self.canvas.figure.subplots(2,2, gridspec_kw={'hspace':0.5})
 
         #Call plotting module
-        PlottingService.build_plot('Awesomest project', 'Bar', 'Bar plot', pie, 'Bar', 'X axis', 'Y axis').plot(axes[0][0])
-        PlottingService.build_plot('Awesomest project', 'Pie', 'Pie plot', pie, 'Pie').plot(axes[0][1])
-        PlottingService.build_plot('Awesomest project', 'Line', 'Line plot', [sp, np.cos(sp)], 'Line').plot(axes[1][0])
+        PlottingService.build_plot('Awesomest project', 'Bar', 'Bar plot', pie, 'X axis', 'Y axis').plot(axes[0][0])
+        PlottingService.build_plot('Awesomest project', 'Pie', 'Pie plot', pie).plot(axes[0][1])
+        PlottingService.build_plot('Awesomest project', 'Line', 'Line plot', [sp, np.cos(sp)]).plot(axes[1][0])
 
         #----------------------------
 
