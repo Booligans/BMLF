@@ -3,7 +3,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
 from sklearn import metrics
 from sklearn.model_selection import StratifiedShuffleSplit
-from ..mlmodel import MLModel
+from mlmodel import MLModel
 
 """
 Support Vector Machine

@@ -1,6 +1,7 @@
 from sklearn import decomposition
+#from mlmodel import MLModel
 
-class PCAReductor:
+class PCAReductor(object):
     
     def __init__(self, type='auto', *args, **kwargs):
         

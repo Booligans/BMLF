@@ -1,19 +1,9 @@
 from sklearn import linear_model
 from sklearn.model_selection import ShuffleSplit, cross_val_predict, cross_val_score, cross_validate
-from ..mlmodel import MLModel
+from mlmodel import MLModel
 from sklearn import metrics
 
 """
-Linear Regression
-Logistic Regression
-Polynomial Regression
-
-x Ridge Regression
-x Lasso Regression
-->ElasticNet Regression
-
-x Jacknife Regression
-
 Implementing Polynomial regression as Linear regression: https://stats.stackexchange.com/questions/58739/polynomial-regression-using-scikit-learn
 """
 
@@ -135,7 +125,8 @@ class LinearModel(MLModel):
         """
         
         pass
-    """
+
+"""
         #{'linear', 'polynomial',logistic','logisticcv','elasticnet','elasticnetcv','orthogonal','orthogonalcv','theil','sgd','perceptron','passive_aggressive'}
         models = {'linear':linear_model.LinearRegression(),
                   'logistic':linear_model.LogisticRegression(),
