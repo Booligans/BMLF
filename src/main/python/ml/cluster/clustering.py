@@ -2,7 +2,7 @@ from sklearn import cluster
 from sklearn.model_selection import cross_val_predict, cross_val_score, cross_validate
 from copy import copy, deepcopy
 from sklearn import metrics
-from mlmodel import MLModel
+from ..mlmodel import MLModel
 
 
 """
