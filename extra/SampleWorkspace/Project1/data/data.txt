@@ -1,0 +1,4 @@
+Height Width Consumption
+70 15 27.33
+78 30 43.15
+45 20 31.67
