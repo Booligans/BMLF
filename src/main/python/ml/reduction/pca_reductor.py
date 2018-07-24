@@ -1,7 +1,7 @@
 from sklearn import decomposition
 #from mlmodel import MLModel
 
-class PCAReductor(object):
+class PCAReductor:
     
     def __init__(self, type='auto', *args, **kwargs):
         
@@ -17,8 +17,8 @@ class PCAReductor(object):
     def fit(self,data):
         self.model.fit(data)
         
-    def transform(self,data):
+    def transform(self, data):
         return self.model.transform(data)
     
-    def fit_transform(self,data):
-        return self.model.fit_transform(data)
+    def fit_transform(self, data, ignored=None):
+        return self.model.fit_transform(data, ignored)
