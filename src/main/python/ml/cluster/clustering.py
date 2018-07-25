@@ -11,16 +11,16 @@ http://web.engr.oregonstate.edu/~xfern/classes/cs534/notes/Unsupervised-model-11
 class Clustering(MLModel):
     """This class encapsulates a linear model."""
     self.model_ = None
-    self.suported_models_ = models = {'kmeans':cluster.KMeans(),
-                  'affinity':cluster.AffinityPropagation(),
-                  'mean_shift':cluster.MeanShift(),
-                  'spectral':cluster.SpectralClustering(),
-                  'agglomerative':cluster.AgglomerativeClustering(),
-                  'dbscan':cluster.DBSCAN(),
-                  'birch':cluster.Birch()}
+    self.suported_models_ = models = {'kmeans':{'class':cluster.KMeans},
+                  'affinity':{'class':cluster.AffinityPropagation},
+                  'mean_shift':{'class':cluster.MeanShift},
+                  #'spectral':{'class':cluster.SpectralClustering},
+                  'agglomerative':{'class':cluster.AgglomerativeClustering},
+                  'dbscan':{'class':cluster.DBSCAN},
+                  'birch':{'class':cluster.Birch}}
 
     def __init__(self, type_='auto', X=None, y=None, avoid_overfitting=True, *args, **kwargs):
-        """ Initiates the Regression class.
+        """ Initiates the Clustering class.
         
         The type parameter defines which model will be chosen, the default will be an automated crossvalidation over all supported linear models.
         The params parameter is a dictinary that contains all the parameters required for the initialization of the lineal model using the format {'name' : value}, in which the names must match the names of the parameters in the sklearn library (in lower case).
@@ -44,7 +44,10 @@ class Clustering(MLModel):
         :Example:
         >>> clustering = Clustering('birch', {'threshold':0.5, 'branching_factor':50, 'n_clusters':3, 'compute_labels':True, 'copy':True})
         """
-        super().__init__(self.supported_models_,X,y,avoid_overfitting,args,kwargs)
+        if type_ == 'auto':
+            self._choose_model(X,y)
+        else:
+           super().__init__(self.supported_models_,X,y,avoid_overfitting,args,kwargs)
 
     def compare(self, model : Clustering, X, y = None):
         """
@@ -80,7 +83,7 @@ class Clustering(MLModel):
         metrict_dict['CHI'] = (metrics.calinski_harabaz_score(X, labels),metrics.calinski_harabaz_score(X, labels_other))
         return metrict_dict
 
-    def choose_model(self,X,y = None):
+    def _choose_model(self,X,y = None, crossvalidation = 'silhouette'):
         """
         Automatic model chooser.
 
@@ -92,25 +95,14 @@ class Clustering(MLModel):
         """
 
         scores = {}
-        for name,model in supported_models:
-            scores[name] = []
-
-        sss = StratifiedShuffleSplit(10, 0.25)
-        for train_index, test_index in sss.get_n_splits(X,y):
-            X_train, X_test = X[train_index], X[test_index]
-            y_train, y_test = y[train_index], y[test_index]
-            for name, model in models:
-                mode.fit(X_train,y_train)
-                scores[name].append(metrics.accuracy_score(y_true=y_train,y_pred=model.predict(X_test)))
+        min = 1
         
-        #Choose http://blog.minitab.com/blog/adventures-in-statistics-2/how-to-choose-the-best-regression-model
-        index = None
-        for name,model in models:
-            min = 10000
-            if scores[name][-1] < min:
-                min = scores[name][-1]
-                index = name
-        _model = models[index]
+        for name,model in self._get_initiated_models(X,y,'silhouette'):
+            score = metrics.silhouette_score(X, model.labels_, metric='euclidean')
+            if score < min:
+                min = score
+                self._model = model
+        
 
     def get_metrics(self, X, y = None):
         """
@@ -127,7 +119,7 @@ class Clustering(MLModel):
         metrict_dict = {} #Adjusted Rand Index, Mutual Information
         labels_true = y
         labels_pred = self.model_.predict(X)
-        labels = model_.labels_
+        labels = self.model_.labels_
 
         if y != None:
             #These metrics require the knowledge of the ground truth classes
@@ -144,7 +136,68 @@ class Clustering(MLModel):
 
         return metrict_dict
 
+    def _get_initiated_models(self, X, y, method : 'silhouette'):
+        """
+        (Far from finished)
 
+        Sets the best k for the k-means model in the supported models.
+        The supported methods include 'silhouette', 'calinski' and 'elbow', which requires the user's final decision.
+
+        https://en.wikipedia.org/wiki/Determining_the_number_of_clusters_in_a_data_set
+        """
+        aggmax = -1
+        aggind = 0
+
+        kmax = -1
+        kind = 0
+
+        bmax = -1
+        bind = 0
+
+        fin_models = {}
+
+        if method == 'silhouette' or method == 'calinski':
+            fin_models['dbscan'] = cluster.DBSCAN()
+            fin_models['affinity'] = cluster.AffinityPropagation()
+            fin_models['mean_shift'] = cluster.MeanShift()
+
+            sss = StratifiedShuffleSplit(10, 0.25)
+            for train_index, test_index in sss.get_n_splits(X,y):
+                X_train, X_test = X[train_index], X[test_index]
+                y_train, y_test = y[train_index], y[test_index]
+                kmodels = {}
+                aggmodels = {}
+                for i in range(1,30):
+                    kmodels[i] = self.suported_models_['kmeans']['class'](i)
+                    aggmodels[i] = self.supported_models_['aglomerative']['class'](i,linkage='average')
+                    birchmodels[i] = self.supported_models_['birch']['class'](n_clusters=i)
+
+                for name,model in fin_models:
+                    model.fit(X_train,y_train)
+            
+            for i in range(30):
+                coeff = silhouette_score(X, kmodels[i].labels_, metric='euclidean') if method == 'silhouette' else metrics.calinski_harabaz_score(X, kmodels[i].labels_) 
+                if coeff > kmax:
+                    kmax = coeff
+                    kind = i
+                coeff = silhouette_score(X, aggmodels[i].labels_, metric='euclidean') if method == 'silhouette' else metrics.calinski_harabaz_score(X, aggmodels[i].labels_) 
+                if coeff > aggmax:
+                    aggmax = coeff
+                    aggind = i
+                coeff = silhouette_score(X, birchmodels[i].labels_, metric='euclidean') if method == 'silhouette' else metrics.calinski_harabaz_score(X, birchmodels[i].labels_) 
+                if coeff > birchmax:
+                    birchmax = coeff
+                    birchind = i
+
+            fin_models['kmeans'] = kmodels[kind]
+            fin_models['agglomerative'] = aggmodels[aggind]
+
+        else:
+            pass
+
+        return fin_models
+
+        
 
        
     #def fit(self, X, y = None, test_size = 0.25, random_state = 0, n_splits = 1):

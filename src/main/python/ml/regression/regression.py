@@ -17,8 +17,6 @@ class LinearModel(MLModel):
     
     _supported_models = {'linear':{'class':linear_model.LinearRegression},
                           
-                          'polinomial':{'class': linear_model.LinearRegression},
-                          
                           'elasticnet':{'class':linear_model.ElasticNet},
                           
                           'elasticnetcv':{'class':linear_model.ElasticNetCV},
@@ -63,8 +61,10 @@ class LinearModel(MLModel):
         :Example:
         >>> model = LinearModel('linear', fit_intercept=True, normalize=True, copy_x=True, n_jobs=1)
         """
-
-        super().__init__(self._supported_models, type_, X, y, avoid_overfitting, *args, **kwargs)
+        if type_ == 'auto':
+                self.choose_model(X,y)
+        else:
+            super().__init__(self._supported_models, type_, X, y, avoid_overfitting, *args, **kwargs)
 
 
     def split(self, X, y, test_size=0.25, random_state=0, n_splits=1):
@@ -113,7 +113,7 @@ class LinearModel(MLModel):
         
         return metrics_dict
 
-    def choose_model(self, X, y):
+    def _choose_model(self, X, y):
         """
         Automatic model chooser.
 
@@ -123,10 +123,6 @@ class LinearModel(MLModel):
         :type X: ndarray or scipy.sparse matrix, (n_samples, n_features)
         :type y: ndarray, shape (n_samples,) or (n_samples, n_targets)
         """
-        
-        pass
-
-"""
         #{'linear', 'polynomial',logistic','logisticcv','elasticnet','elasticnetcv','orthogonal','orthogonalcv','theil','sgd','perceptron','passive_aggressive'}
         models = {'linear':linear_model.LinearRegression(),
                   'logistic':linear_model.LogisticRegression(),
@@ -145,7 +141,7 @@ class LinearModel(MLModel):
             y_train, y_test = y[train_index], y[test_index]
             for name, model in models:
                 mode.fit(X_train,y_train)
-                scores[name].append(model.score(X_test,y_test))
+                scores[name].append(metrics.mean_squared_error(X_test,y_test))
         
         #Choose http://blog.minitab.com/blog/adventures-in-statistics-2/how-to-choose-the-best-regression-model
         index = None
@@ -153,9 +149,5 @@ class LinearModel(MLModel):
             min = 10000
             if scores[name][-1] < min:
                 min = scores[name][-1]
-                index = name
-        _model = models[index]
-"""
-
-        
+                _model = model
         
