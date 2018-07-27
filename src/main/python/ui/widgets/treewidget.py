@@ -54,7 +54,7 @@ class ProjectTree(QtWidgets.QTreeWidget):
         """
         try:
             tagged = False
-            tags = None
+            tags = []
             with open(path, 'r') as f:
                 tags = f.readline().split(' ')
                 for tag in tags:
@@ -71,6 +71,9 @@ class ProjectTree(QtWidgets.QTreeWidget):
             skiprows = 0
             if tagged:
                 skiprows = 1
+            else:
+                tags = []
+                
             data = np.loadtxt(path, skiprows=skiprows)
             self.opened_data.emit(data, tags)
             

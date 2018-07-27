@@ -2,6 +2,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from .dialog import *
 from .assets import assets
 from .widgets.treewidget import ProjectTree
+from .widgets.tablewidget import TableWidget
+from .widgets.toolbar import ToolBar
 import os
 
 from plots.plotting_service import PlottingService
@@ -10,19 +12,27 @@ import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvas
 from matplotlib.figure import Figure
 
-class Ui_MainWindow(object):
+class Ui_MainWindow:
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(959, 531)
         p = MainWindow.palette()
         p.setColor(MainWindow.backgroundRole(), QtGui.QColor(253,238,241))
         MainWindow.setPalette(p)
-        
+
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
 
+        self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
+        self.verticalLayout.setContentsMargins(0,0,0,0)
+        self.verticalLayout.setSpacing(5)
+        self.verticalLayout.setObjectName("verticalLayout")
+
+        self.mainwidget = QtWidgets.QWidget(self.centralwidget)
+        self.mainwidget.setObjectName("mainwidget")
+
         # Set main layout for automatic resizing
-        self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
+        self.gridLayout = QtWidgets.QGridLayout(self.mainwidget)
         self.gridLayout.setContentsMargins(11, 11, 11, 11)
         self.gridLayout.setSpacing(6)
         self.gridLayout.setObjectName("gridLayout")
@@ -40,15 +50,7 @@ class Ui_MainWindow(object):
         self.tab.setObjectName("tab")
         self.tableWidget = TableWidget(self.tab)
         self.tabWidget.addTab(self.tab, "")
-        """
-        # ----Sample data----
-
-        data = np.array([[1,2,3],[4,5,6],[7,8,9]])
-        tags = ['Foo', 'Bar', 'Target']
-        self.tableWidget.load_data(data, tags)
         
-        #--------------------
-        """
         # Tab 2, will contain the visualizations
         self.tab_2 = QtWidgets.QWidget()
         self.tab_2.setObjectName("tab_2")
@@ -94,14 +96,15 @@ class Ui_MainWindow(object):
 
         # Tool bar
         self.toolbar = ToolBar(MainWindow)
-        MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolbar)
+        self.verticalLayout.addWidget(self.toolbar)
 
         # Get workspace and setup project tree
         self.file = QtWidgets.QFileDialog.getExistingDirectory(MainWindow, "Select your workspace")
         if (self.file != ""):
             self.ProjectTreeWidget = ProjectTree(self.centralwidget, self.file, self.gridLayout)
             self.ProjectTreeWidget.opened_data.connect(self.tableWidget.load_data)
-            
+
+        self.verticalLayout.addWidget(self.mainwidget)
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
@@ -113,87 +116,9 @@ class Ui_MainWindow(object):
         self.tableWidget.setSortingEnabled(False)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Data"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Visualization"))
-			
-class ToolButton(QtWidgets.QToolButton):
-    def __init__(self, *args):
-        QtWidgets.QToolButton.__init__(self, *args)
-        self.setCheckable(True)
-        self.setStyleSheet( "QToolButton{border:1px solid white;}")
-			
-class ToolBar(QtWidgets.QToolBar):
-    def __init__(self, *args):
-        QtWidgets.QToolBar.__init__(self, *args)
-        self.setStyleSheet( "QToolBar{background: rgb(239,246,253);}")
-        self.setObjectName("toolbar")
-        toolButton1 = ToolButton(self)
-        self.addWidget(toolButton1)
-        toolButton2 = ToolButton(self)
-        self.addWidget(toolButton2)
-		
-class TableWidget(QtWidgets.QTableWidget):
-
-    DEFAULT_ROWS = 10000
-    DEFAULT_COLS = 1000
-    
-    def __init__(self, *args):
-        stylesheet_1 = "::section{Background-color:rgb(216,233,250);}"
-        stylesheet_2 = (
-        "QHeaderView::section{""border-right:1px solid #D8D8D8;""border-bottom: 1px solid #D8D8D8;}"
-        "QTableCornerButton::section{border-right:1px solid #D8D8D8;border-bottom: 1px solid #D8D8D8;background-color:#d8e9fa;}")
-        QtWidgets.QTableWidget.__init__(self, *args)
-
-        self.gridLayout = QtWidgets.QGridLayout(args[0])
-        self.gridLayout.setContentsMargins(1, 1, 1, 1)
-        self.gridLayout.setSpacing(0)
-        self.gridLayout.setObjectName("gridLayout_tab_1")
-
-        self.gridLayout.addWidget(self, 0, 0, 1, 1)
-        
-        self.setGeometry(QtCore.QRect(0, 0, -1, -1))
-        self.setAutoFillBackground(False)
-        self.setShowGrid(True)
-        self.setGridStyle(QtCore.Qt.SolidLine)
-        self.setWordWrap(True)
-        self.setRowCount(self.DEFAULT_ROWS)
-        self.setColumnCount(self.DEFAULT_COLS)
-        self.setObjectName("tableWidget")
-        self.setStyleSheet(stylesheet_1)
-        self.horizontalHeader().setStyleSheet(stylesheet_2)
-        self.horizontalHeader().setVisible(True)
-        self.horizontalHeader().setCascadingSectionResizes(False)
-        self.verticalHeader().setStyleSheet(stylesheet_2)
-        self.verticalHeader().setVisible(True)
-        self.verticalHeader().setCascadingSectionResizes(False)
-        self.verticalHeader().setHighlightSections(True)
-        self.verticalHeader().setSortIndicatorShown(False)
-        self.verticalHeader().setStretchLastSection(False)
-        self.setItemPrototype(self.CustomTableWidgetItem())
-
-
-    def load_data(self, data, columns = None):
-        """
-        Load data into the table
-        :param data: The data to load
-        :param columns: Names of columns
-        :type data: ndarray, shape=(n_samples, n_features)
-        :type columns: array-like, shape=(n_features)
-        """
-        for i, row in enumerate(data):
-            for j, elem in enumerate(row):
-                self.setItem(i, j, self.CustomTableWidgetItem(str(elem)))
-
-        if columns is not None:
-            self.setHorizontalHeaderLabels(columns)
-        
-        
-        
-    class CustomTableWidgetItem(QtWidgets.QTableWidgetItem):
-        # Custom table item with specified alignment
-        def __init__(self, *args, align=QtCore.Qt.AlignCenter,
-                     type=QtWidgets.QTableWidgetItem.UserType, **kwargs):
-            super().__init__(*args, type=type, **kwargs)
-            self.setTextAlignment(align)
-            
+        self.toolbar.retranslateUi(_translate)
+        			
+       
 
 class MenuBar(QtWidgets.QMenuBar):
     def __init__(self, *args):
@@ -229,6 +154,9 @@ class MenuBar(QtWidgets.QMenuBar):
 
         self.addAction(self.menuFile.menuAction())
         self.addAction(self.menuEdit.menuAction())
+
+        self.actionHelp = Action(self, "actionHelp", self.helpme, "Help")
+        self.addAction(self.actionHelp)
 		
         _translate = QtCore.QCoreApplication.translate
         self.menuFile.setTitle(_translate("MainWindow", "File"))
@@ -261,6 +189,17 @@ class MenuBar(QtWidgets.QMenuBar):
 	
     def dialog(self, Ui_MainWindow):
         dialog = PreferencesDialog(Ui_MainWindow)
+
+    def helpme(self):
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Information)
+        msg.setText("We cannot get out.")
+        msg.setInformativeText("They have taken the Bridge and second hall.")
+        msg.setWindowTitle("Help")
+        msg.setDetailedText("The end comes ... drums, drums in the deep ... They are coming.")
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        retval = msg.exec_()
+        
         
 class Action(QtWidgets.QAction):
     def __init__(self, *args):

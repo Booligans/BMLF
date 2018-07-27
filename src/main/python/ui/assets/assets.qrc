@@ -3,5 +3,8 @@
     <file>images/proj.png</file>
     <file>images/file.png</file>
     <file>images/folder.png</file>
+    <file>images/select_data.png</file>
+    <file>images/bar_plot.png</file>
+    <file>images/pie_plot.jpg</file>
 </qresource>
 </RCC>
