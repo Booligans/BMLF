@@ -1,5 +1,5 @@
 from sklearn import cluster
-from sklearn.model_selection import cross_val_predict, cross_val_score, cross_validate
+from sklearn.model_selection import cross_val_predict, cross_val_score, cross_validate, StratifiedShuffleSplit
 from copy import copy, deepcopy
 from sklearn import metrics
 from ..mlmodel import MLModel
@@ -8,10 +8,10 @@ from ..mlmodel import MLModel
 """
 http://web.engr.oregonstate.edu/~xfern/classes/cs534/notes/Unsupervised-model-11.pdf
 """
-class Clustering(MLModel):
+class ClusteringModel(MLModel):
     """This class encapsulates a linear model."""
-    self.model_ = None
-    self.suported_models_ = models = {'kmeans':{'class':cluster.KMeans},
+    model_ = None
+    uported_models_ = models = {'kmeans':{'class':cluster.KMeans},
                   'affinity':{'class':cluster.AffinityPropagation},
                   'mean_shift':{'class':cluster.MeanShift},
                   #'spectral':{'class':cluster.SpectralClustering},
@@ -45,11 +45,11 @@ class Clustering(MLModel):
         >>> clustering = Clustering('birch', {'threshold':0.5, 'branching_factor':50, 'n_clusters':3, 'compute_labels':True, 'copy':True})
         """
         if type_ == 'auto':
-            self._choose_model(X,y)
+            self.choose_model(X,y)
         else:
            super().__init__(self.supported_models_,X,y,avoid_overfitting,args,kwargs)
 
-    def compare(self, model : Clustering, X, y = None):
+    def compare(self, model, X, y = None):
         """
         Compares the score of a sample in two models.
         Returns a crossvalidation of metrics, predictions and score.
@@ -83,7 +83,7 @@ class Clustering(MLModel):
         metrict_dict['CHI'] = (metrics.calinski_harabaz_score(X, labels),metrics.calinski_harabaz_score(X, labels_other))
         return metrict_dict
 
-    def _choose_model(self,X,y = None, crossvalidation = 'silhouette'):
+    def choose_model(self,X,y = None, crossvalidation = 'silhouette'):
         """
         Automatic model chooser.
 
@@ -162,6 +162,7 @@ class Clustering(MLModel):
             fin_models['mean_shift'] = cluster.MeanShift()
 
             sss = StratifiedShuffleSplit(10, 0.25)
+            #Next line fails -> Might need to use 'split()' but then types need to be checked more carefully
             for train_index, test_index in sss.get_n_splits(X,y):
                 X_train, X_test = X[train_index], X[test_index]
                 y_train, y_test = y[train_index], y[test_index]
@@ -196,8 +197,24 @@ class Clustering(MLModel):
             pass
 
         return fin_models
-
         
+    #THE FOLLOWING METHOD REQUIRES IMPLEMENTATION
+    def split(self, X, y, test_size=0.25, random_state=0, n_splits=1):
+        """Return n_splits splittings of the data into train and test groups,
+        as a list of tuples of lists of indexes in the data
+
+        :param X: data
+        :param y: target
+        :param test_size: Percentage of the data in the test set
+        :param random_state: Seed for the PRNG
+        :param n_splits: Number of splits to make
+        :type X: array-like, shape = (n_samples, n_features)
+        :type y: array-like, shape = (n_samples) or (n_samples, n_outputs)
+        :type test_size: float
+        :type random_state: int
+        :type n_splits: int
+        """
+        pass
 
        
     #def fit(self, X, y = None, test_size = 0.25, random_state = 0, n_splits = 1):

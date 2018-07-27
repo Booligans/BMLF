@@ -15,7 +15,6 @@ class TestLinearModel(TestCase):
     def test_init(self):
         #Test initialization for each model
         linear = LinearModel('linear')
-        pol = LinearModel('polinomial')                          
         eln = LinearModel('elasticnet')                          
         elncv = LinearModel('elasticnetcv')
         bayes = LinearModel('bayes_ridge')                          
@@ -27,7 +26,6 @@ class TestLinearModel(TestCase):
         p_a = LinearModel('passive-agressive')
 
         self.assertIsInstance(linear.get_model(), linear_model.LinearRegression)
-        self.assertIsInstance(pol.get_model(), linear_model.LinearRegression)
         self.assertIsInstance(eln.get_model(), linear_model.ElasticNet)
         self.assertIsInstance(elncv.get_model(), linear_model.ElasticNetCV)
         self.assertIsInstance(bayes.get_model(), linear_model.BayesianRidge)

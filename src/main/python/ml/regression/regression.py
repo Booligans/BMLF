@@ -113,7 +113,7 @@ class LinearModel(MLModel):
         
         return metrics_dict
 
-    def _choose_model(self, X, y):
+    def choose_model(self, X, y):
         """
         Automatic model chooser.
 
@@ -149,5 +149,5 @@ class LinearModel(MLModel):
             min = 10000
             if scores[name][-1] < min:
                 min = scores[name][-1]
-                _model = model
+                self._model = model
         
