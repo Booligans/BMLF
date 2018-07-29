@@ -1,4 +1,4 @@
-import ml_analysis
+from .ml_analysis import MLAnalysis
 from sklearn.metrics import classification_report, confusion_matrix
 
 class ClassificationAnalysis(MLAnalysis):

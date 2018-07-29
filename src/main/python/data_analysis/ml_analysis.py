@@ -1,8 +1,8 @@
-import data_analysis
+from data_analysis import DataAnalysis
 
 class MLAnalysis(DataAnalysis):
-"""This class encapsulates the analysis of the model for some test data."""
-
+    """This class encapsulates the analysis of the model for some test data."""
+    
     def __init__(self, model, test_data):
         """Class constructor.
         
@@ -14,11 +14,8 @@ class MLAnalysis(DataAnalysis):
         self.predictions = self.model.predict(test_data)
         self.analyze()
     
-    def analyze():
-        self.text = []
-        self.text.append('Number of items: ', len(data)) #rows of data matrix
-        self.text.append('Number of features: ', len(data[0])) #columns of data matrix 
+    def analyze(self):
         #Model and parameters
         self.text.append('Model: ', self.model)
-        #----- params?
+        #Params -> Could accept dictionary {'param': value}
         

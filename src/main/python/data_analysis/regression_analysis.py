@@ -1,4 +1,4 @@
-import ml_analysis
+from .ml_analysis import MLAnalysis
 
 class RegressionAnalysis(MLAnalysis):
     """Class encapsulating regression analysis over certain data"""
@@ -7,7 +7,7 @@ class RegressionAnalysis(MLAnalysis):
     def __init__(self, model, data):
         super().__init__(model, data)
     
-    def analyze():
+    def analyze(self):
         super().analyze()
         self.params = [model.coef_, model.intercept_]
         
