@@ -11,7 +11,7 @@ http://web.engr.oregonstate.edu/~xfern/classes/cs534/notes/Unsupervised-model-11
 class ClusteringModel(MLModel):
     """This class encapsulates a linear model."""
     model_ = None
-    uported_models_ = models = {'kmeans':{'class':cluster.KMeans},
+    _supported_models = models = {'kmeans':{'class':cluster.KMeans},
                   'affinity':{'class':cluster.AffinityPropagation},
                   'mean_shift':{'class':cluster.MeanShift},
                   #'spectral':{'class':cluster.SpectralClustering},
@@ -44,10 +44,7 @@ class ClusteringModel(MLModel):
         :Example:
         >>> clustering = Clustering('birch', {'threshold':0.5, 'branching_factor':50, 'n_clusters':3, 'compute_labels':True, 'copy':True})
         """
-        if type_ == 'auto':
-            self.choose_model(X,y)
-        else:
-           super().__init__(self.supported_models_,X,y,avoid_overfitting,args,kwargs)
+        super().__init__(self._supported_models,X,y,avoid_overfitting,args,kwargs)
 
     def compare(self, model, X, y = None):
         """

@@ -6,5 +6,10 @@
     <file>images/select_data.png</file>
     <file>images/bar_plot.png</file>
     <file>images/pie_plot.jpg</file>
+    <file>images/fit_model.png</file>
+    <file>images/auto_pca.png</file>
+    <file>images/inc_pca.png</file>
+    <file>images/kernel_pca.png</file>
+    <file>images/trans_pca.png</file>
 </qresource>
 </RCC>
