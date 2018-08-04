@@ -15,7 +15,6 @@ class MLAnalysis(DataAnalysis):
         self.analyze()
     
     def analyze(self):
-        #Model and parameters
+        #Model
         self.text.append('Model: ', self.model)
-        #Params -> Could accept dictionary {'param': value}
         

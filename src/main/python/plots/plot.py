@@ -31,7 +31,7 @@ class Plot(ABC):
 class MultiPlot:
     """This class represents a plot with multiple subplots."""
     
-    def __init__(self, name, plots=[], *args, **kwargs):
+    def __init__(self, name, plots=[]):
         """Class constructor.
         
         :param name: name of the MultiPlot
@@ -41,8 +41,6 @@ class MultiPlot:
         """
         self.name = name
         self.plots = plots
-        self.args = args
-        self.kwargs = kwargs
         
     def add_plot(self,plot):
         """Adds a plot to the current MultiPlot.
@@ -59,7 +57,3 @@ class MultiPlot:
         :type index: int
         """
         self.plots.pop(index)
-        
-    def plot(self, axes):
-        """Draws the MultiPlot."""
-        pass #Requires format specification

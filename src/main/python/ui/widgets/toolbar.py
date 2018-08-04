@@ -97,7 +97,7 @@ class ProjectToolbar(SingleToolbar):
     def __init__(self, *args, **kwargs):
         SingleToolbar.__init__(self, "proj_toolbar", *args, **kwargs)
         self.addRegion("File", 0, 0, 2, 2)
-
+        
 class MLToolbar(SingleToolbar):
     def __init__(self, load_data, save_data, *args, **kwargs):
         SingleToolbar.__init__(self, "ml_toolbar", *args, **kwargs)
@@ -106,11 +106,12 @@ class MLToolbar(SingleToolbar):
         self.load_data = load_data
         self.save_data = save_data
         
+        # TEMPORARILY DISABLED
         # Data region
-        sel_data_button = ToolPushButton(
-            QtGui.QIcon(":/images/select_data.png"), "Select data", self.select_data)
-        data_buttons = [(sel_data_button, 1, 0, 1, 1)]
-        self.addRegion("Data", 0, 0, 2, 1, *data_buttons)
+        #sel_data_button = ToolPushButton(
+        #    QtGui.QIcon(":/images/select_data.png"), "Select data", self.select_data)
+        #data_buttons = [(sel_data_button, 1, 0, 1, 1)]
+        #self.addRegion("Data", 0, 0, 2, 1, *data_buttons)
 
         
         model_selection = ToolComboBox(
