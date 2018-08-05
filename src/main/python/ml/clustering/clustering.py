@@ -159,8 +159,7 @@ class ClusteringModel(MLModel):
             fin_models['mean_shift'] = cluster.MeanShift()
 
             sss = StratifiedShuffleSplit(10, 0.25)
-            #Next line fails -> Might need to use 'split()' but then types need to be checked more carefully
-            for train_index, test_index in sss.get_n_splits(X,y):
+            for train_index, test_index in sss.split(X,y):
                 X_train, X_test = X[train_index], X[test_index]
                 y_train, y_test = y[train_index], y[test_index]
                 kmodels = {}

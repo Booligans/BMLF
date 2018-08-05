@@ -12,3 +12,4 @@ target/
 __pycache__/
 *.pyo
 *.pyc
+/venv
