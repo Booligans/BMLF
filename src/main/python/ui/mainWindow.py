@@ -171,10 +171,10 @@ class MenuBar(QtWidgets.QMenuBar):
         QtWidgets.QFileDialog.getOpenFileName()
 	
     def sw_workspace(self, Ui_MainWindow):
-        file = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select your workspace"))
-        if (file != ""):
+        path = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select your workspace"))
+        if (path != ""):
             Ui_MainWindow.ProjectTreeWidget.reset()
-            Ui_MainWindow.ProjectTreeWidget.load_project(file, Ui_MainWindow.ProjectTreeWidget)
+            Ui_MainWindow.ProjectTreeWidget.search_projects(path)
 	
     def undo(self):
         print("undo")

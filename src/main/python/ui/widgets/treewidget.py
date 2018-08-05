@@ -98,13 +98,16 @@ class ProjectTree(QtWidgets.QTreeWidget):
                 parent_itm.setIcon(0, QtGui.QIcon(':/images/file.png'))
                 
             
-    def search_projects(self):
+    def search_projects(self, startpath=None):
         """
         Search for projects in the workspace
         and load them into the tree structure
-        :param tree: 
+        :param startpath: Set workspace to given path
+        :type startpath: str
         :return: 
         """
+        if startpath is not None:
+            self.startpath = startpath
         for element in os.listdir(self.startpath):
             path_info = self.startpath + "/" + element
             if self.is_project(path_info):

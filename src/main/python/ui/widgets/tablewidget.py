@@ -3,8 +3,8 @@ import numpy as np
 
 class TableWidget(QtWidgets.QTableWidget):
 
-    DEFAULT_ROWS = 10000
-    DEFAULT_COLS = 1000
+    DEFAULT_ROWS = 100
+    DEFAULT_COLS = 100
     
     def __init__(self, *args):
         stylesheet_1 = "::section{Background-color:rgb(216,233,250);}"
@@ -41,8 +41,6 @@ class TableWidget(QtWidgets.QTableWidget):
         self.setItemPrototype(self.CustomTableWidgetItem())
 
         self.cellChanged.connect(self.cell_changed)
-        self.maxRow = 0
-        self.maxCol = 0
 
 
     def load_data(self, data, columns=[], rowOffset=0, colOffset=0):
@@ -57,6 +55,11 @@ class TableWidget(QtWidgets.QTableWidget):
         :type rowOffset: int
         :type colOfffset: int
         """
+        if rowOffset+data.shape[0] > self.rowCount()-10:
+            self.setRowCount(rowOffset+data.shape[0]+10)
+        if colOffset+data.shape[1] > self.columnCount()-10:
+            self.setColumnCount(colOffset+data.shape[1]+10)
+        
         for i, row in enumerate(data):
             for j, elem in enumerate(row):
                 self.setItem(rowOffset+i, colOffset+j, self.CustomTableWidgetItem(str(elem)))
@@ -65,9 +68,13 @@ class TableWidget(QtWidgets.QTableWidget):
             if len(set(columns)) < len(columns):
                 raise ValueError("Duplicate column name")
             else:
-                self.setHorizontalHeaderLabels(columns)
+                newHeaders = []
+                for i in range(0, colOffset):
+                    newHeaders.append(str(i) if self.horizontalHeaderItem(i) is None else self.horizontalHeaderItem(i).text())
+                newHeaders = newHeaders + columns
+                self.setHorizontalHeaderLabels(newHeaders)
         
-    def get_data(self, selection=None, target=None):
+    def get_data(self):
         """
         Return the data in the table for use in other modules
         either as a matrix X or as a pair (X,y) of features and target.
@@ -76,70 +83,129 @@ class TableWidget(QtWidgets.QTableWidget):
         :type selection: QTableWidgetSelectionRange
         :type target: str
         """
-        if selection is not None:
-            raise NotImplementedError("Data selection NYI")
+        if len(self.selectedRanges()) > 0:
+            return self.get_selection()
         else:
             #Get columns which contain data
-            columns = [x for x in range(0,self.maxCol) if self.item(0,x) is not None]
-            if len(columns) < 2 or self.maxRow == 0:
-                raise ValueError("Not enough data, at least two columns and one row required")
-            
-            if target is None:
-                #Default target column
-                target_column = None
-            elif target == "":
-                target_column = columns[-1] 
-            else:
-                pos_target_columns = [col for col in columns
-                                      if self.horizontalHeaderItem(col) == target]
-                if len(pos_target_columns) == 0:
-                    raise ValueError("No column named " + target)
-                target_column = pos_target_columns[0]
-                y = np.zeros(self.maxRow)
-
-            
-            X = np.array([np.zeros(self.maxRow) for i in range(len(columns)-(1 if target is not None else 0))])
+            columns = [x for x in range(0,self.columnCount()) if self.item(0,x) is not None]
+            selection = []
             for col in columns:
-                # Store the column in y or X depending on column
-                if col == target_column:
-                    storage = y
-                else:
-                    storage = X[col]
-                    
-                for row in range(0, self.maxRow):
-                    try:
-                        storage[row] = float(self.item(row, col).text())
-                    except AttributeError:
-                        # item is None, cell is empty
-                        raise ValueError("All columns must have the same number of rows.\n" +
-                                         "The cell at (" + row + "," + column +") is empty")
-                    except ValueError as err:
-                            raise ValueError("The value at (" + row + "," + column +
-                                             ") is not a number", err)
+                selection.append(QtWidgets.QTableWidgetSelectionRange(0, col, self.columnCount()-1, col))
 
-            # Note that we have been indexing X by columns. We need to transpose it
-            X = X.transpose()
-            print(X)
-            return X if target is None else (X,y)
+            X = self.is_column_selection(selection)[1]
+            return X
         
 
     def cell_changed(self, row, col):
         #Internal use. Keep track of the rows and columns used
-        if row+1 > self.maxRow:
-            self.maxRow = row+1
-        if col+1 > self.maxCol:
-            self.maxCol = col+1
+        if row > self.rowCount()-10:
+            self.setRowCount(row+10)
+        if col > self.columnCount()-10:
+            self.setColumnCount(col+10)
 
             
     def get_selection(self):
-        data = np.arrange
         sel = self.selectedRanges()
-        for range_ in sel:
-            for row in range(range_.topRow(), min(range_.bottomRow()+1, self.maxRow)):
-                for col in range(range_.leftColumn(), min(range_.rightColumn()+1, self.maxCol)):
-                    item = self.item(row,col)
-                    print(0 if item is None else item.text())
 
+        is_col = self.is_column_selection(sel)
+        is_row = (False, -1)
+        is_rect = (False, -1, -1)
+        if is_col[0]:
+            return is_col[1]
+        else:
+            is_row = self.is_row_selection(sel)
+            
+        if is_row[0]:
+            return is_row[1]
+        else:
+            is_rect = self.is_rect_selection(sel)
+            
+        if is_rect[0]:
+            return is_rect[1]
+        else:
+            raise ValueError("Not a valid selection")
+        
+
+    def is_column_selection(self, sel):
+        # Test if the given selection is a column selection    
+        if all(range_.leftColumn() == range_.rightColumn() and range_.topRow() == 0 and range_.bottomRow() == self.rowCount()-1 for range_ in sel):
+            maxRow = 1
+            for range_ in sel:
+                for row in range(self.rowCount()):
+                    if self.item(row, range_.leftColumn()) is not None and maxRow < row:
+                        maxRow = row
+
+            data = np.array([np.zeros(len(sel)) for i in range(maxRow+1)])
+            col = 0
+            for range_ in sel:
+                for row in range(range_.topRow(), range_.topRow()+data.shape[0]):
+                    try:
+                        data[row, col] = float(self.item(row, range_.leftColumn()).text())
+                    except AttributeError:
+                        # item is None, cell is empty
+                        data[row, col] = 0
+                    except ValueError as err:
+                        raise ValueError("The value at (" + row + "," + range_.leftColumn() +
+                                         ") is not a number", err)
+                col += 1
+                
+            return True, data
+        else:
+            return False, []
+
+                            
+    def is_row_selection(self, sel):
+         # Test if the given selection is a row selection
+        if all(range_.topRow() == range_.bottomRow() and range_.leftColumn() == 0 and range_.rightColumn() == self.columnCount()-1 for range_ in sel):
+            maxCol = 1
+            for range_ in sel:
+                for col in range(self.columnCount()):
+                    if self.item(range_.topRow(), col) is not None and maxCol < col:
+                        maxCol = col
+
+            data = np.array([np.zeros(maxCol+1) for i in range(len(sel))])
+            row = 0
+            for range_ in sel:
+                for col in range(range_.leftColumn(), range_.leftColumn()+data.shape[1]):
+                    try:
+                        data[row, col] = float(self.item(range_.topRow(), col).text())
+                    except AttributeError:
+                        # item is None, cell is empty
+                        data[row, col] = 0
+                    except ValueError as err:
+                        raise ValueError("The value at (" + range_.topRow() + "," + col +
+                                         ") is not a number", err)
+                row += 1
+                
+            return True, data
+        else:
+            return False, -1
+        
+
+    def is_rect_selection(self, sel):
+        if len(sel) == 1:
+            rows = sel[0].bottomRow()-sel[0].topRow()+1
+            cols = sel[0].rightColumn()-sel[0].leftColumn()+1
+
+            data = np.array([np.zeros(cols) for i in range(rows)])
+            
+            dataRow = 0
+            for row in range(sel[0].topRow(), sel[0].bottomRow()+1):
+                dataCol = 0
+                for col in range(sel[0].leftColumn(), sel[0].rightColumn()+1):
+                    try:
+                        data[dataRow, dataCol] = float(self.item(row, col).text())
+                    except AttributeError:
+                        # item is None, cell is empty
+                        data[dataRow, dataCol] = 0
+                    except ValueError as err:
+                        raise ValueError("The value at (" + row + "," + column +
+                                         ") is not a number", err)
+                    dataCol += 1
+                dataRow += 1
+            return True, data
+        else:
+            return False, []
                     
     class CustomTableWidgetItem(QtWidgets.QTableWidgetItem):
         # Custom table item with specified alignment
