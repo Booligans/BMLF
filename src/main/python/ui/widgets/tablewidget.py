@@ -45,17 +45,21 @@ class TableWidget(QtWidgets.QTableWidget):
         self.maxCol = 0
 
 
-    def load_data(self, data, columns=[]):
+    def load_data(self, data, columns=[], rowOffset=0, colOffset=0):
         """
         Load data into the table
         :param data: The data to load
         :param columns: Names of columns
+        :param rowOffset: Insert data starting at this row
+        :param colOffset: Insert data starting at this column
         :type data: ndarray, shape=(n_samples, n_features)
         :type columns: array-like, shape=(n_features)
+        :type rowOffset: int
+        :type colOfffset: int
         """
         for i, row in enumerate(data):
             for j, elem in enumerate(row):
-                self.setItem(i, j, self.CustomTableWidgetItem(str(elem)))
+                self.setItem(rowOffset+i, colOffset+j, self.CustomTableWidgetItem(str(elem)))
 
         if len(columns) > 0:
             if len(set(columns)) < len(columns):
@@ -66,9 +70,9 @@ class TableWidget(QtWidgets.QTableWidget):
     def get_data(self, selection=None, target=None):
         """
         Return the data in the table for use in other modules
-        as a pair (X,y) of features and target.
+        either as a matrix X or as a pair (X,y) of features and target.
         :param selection: Selection of data to use, all the available data by default
-        :param target: Column to use as target (y). Last one by default
+        :param target: Column to use as target (y). None by default
         :type selection: QTableWidgetSelectionRange
         :type target: str
         """
@@ -82,17 +86,19 @@ class TableWidget(QtWidgets.QTableWidget):
             
             if target is None:
                 #Default target column
-                target_column = columns[-1]
+                target_column = None
+            elif target == "":
+                target_column = columns[-1] 
             else:
                 pos_target_columns = [col for col in columns
                                       if self.horizontalHeaderItem(col) == target]
                 if len(pos_target_columns) == 0:
                     raise ValueError("No column named " + target)
                 target_column = pos_target_columns[0]
+                y = np.zeros(self.maxRow)
 
-
-            y = np.zeros(self.maxRow)
-            X = np.array([np.zeros(self.maxRow) for i in range(columns-1)])
+            
+            X = np.array([np.zeros(self.maxRow) for i in range(len(columns)-(1 if target is not None else 0))])
             for col in columns:
                 # Store the column in y or X depending on column
                 if col == target_column:
@@ -100,7 +106,7 @@ class TableWidget(QtWidgets.QTableWidget):
                 else:
                     storage = X[col]
                     
-                for row in range(0, maxCol):
+                for row in range(0, self.maxRow):
                     try:
                         storage[row] = float(self.item(row, col).text())
                     except AttributeError:
@@ -113,15 +119,16 @@ class TableWidget(QtWidgets.QTableWidget):
 
             # Note that we have been indexing X by columns. We need to transpose it
             X = X.transpose()
-            return (X,y)
+            print(X)
+            return X if target is None else (X,y)
         
 
     def cell_changed(self, row, col):
         #Internal use. Keep track of the rows and columns used
-        if row > self.maxRow:
-            self.maxRow = row
-        if col > self.maxCol:
-            self.maxCol = col
+        if row+1 > self.maxRow:
+            self.maxRow = row+1
+        if col+1 > self.maxCol:
+            self.maxCol = col+1
 
             
     def get_selection(self):
