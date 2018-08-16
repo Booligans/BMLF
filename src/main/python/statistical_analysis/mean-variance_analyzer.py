@@ -1,5 +1,6 @@
 import numpy as np
-class MeanVarianceAnalysis:
+
+class MeanVarianceAnalyzer:
     """Class encapsulating mean-variance analysis over a dataset."""
 
     def __init__(self, data):
@@ -20,6 +21,7 @@ class MeanVarianceAnalysis:
         for i from 0 to len(self.data)-1:
             list.append(self.data[i][column])
         return list
+        
     def mode(list)
         """ This is a prototype function. It could be more efficient."""
         return max(set(list), key=list.count)
@@ -38,7 +40,7 @@ class MeanVarianceAnalysis:
         max_list=[]
         min_list=[]
         """ It is supposed that there is any user to check data[0]. """
-        for i from 0 to len(data[0])-1:
+        for i in range(0, len(data[0])):
             list=create_list(i)
             if type(data[0][i]) is float:
                 mean_list.append(mean(list))
