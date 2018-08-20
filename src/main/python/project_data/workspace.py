@@ -7,6 +7,7 @@ class Workspace:
         
     def switch_workspace(self, path):
         #Close all projects
+        close_project()
         self.path = path
         
     def add_project(self, name):
@@ -19,8 +20,11 @@ class Workspace:
     def open_project(self, name):
         os.chdir(os.path.join(self.path, name))
         
-    def close_project(self, name):
+    def close_project(self):
         os.chdir(self.path)
         
-    def rename_project(self, name):
-        pass #Closing renaming and opening should work, but slow
+    def rename_project(self, name, new_name):
+        #Closing renaming and opening should work, but slow
+        close_project()
+        os.rename(name, new_name)
+        open_project(new_name)
