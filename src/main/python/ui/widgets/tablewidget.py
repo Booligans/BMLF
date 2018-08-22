@@ -1,5 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
+from .abstractions import DataMedium, Data
 
 class TableWidget(QtWidgets.QTableWidget):
 
@@ -42,19 +43,17 @@ class TableWidget(QtWidgets.QTableWidget):
 
         self.cellChanged.connect(self.cell_changed)
 
+        self.dataMedium = self.TableWidgetDataMedium(self)
 
-    def load_data(self, data, columns=[], rowOffset=0, colOffset=0):
+    def load_data(self, all_data, *args, rowOffset=0, colOffset=0, **kwargs):
         """
         Load data into the table
-        :param data: The data to load
-        :param columns: Names of columns
-        :param rowOffset: Insert data starting at this row
-        :param colOffset: Insert data starting at this column
-        :type data: ndarray, shape=(n_samples, n_features)
-        :type columns: array-like, shape=(n_features)
-        :type rowOffset: int
-        :type colOfffset: int
+        :param all_data: The data to load
+        :type all_data: Data
         """
+        data = all_data.get_data()
+        columns = all_data.get_headers()
+        
         if rowOffset+data.shape[0] > self.rowCount()-10:
             self.setRowCount(rowOffset+data.shape[0]+10)
         if colOffset+data.shape[1] > self.columnCount()-10:
@@ -64,7 +63,7 @@ class TableWidget(QtWidgets.QTableWidget):
             for j, elem in enumerate(row):
                 self.setItem(rowOffset+i, colOffset+j, self.CustomTableWidgetItem(str(elem)))
 
-        if len(columns) > 0:
+        if columns is not None:
             if len(set(columns)) < len(columns):
                 raise ValueError("Duplicate column name")
             else:
@@ -92,8 +91,7 @@ class TableWidget(QtWidgets.QTableWidget):
             for col in columns:
                 selection.append(QtWidgets.QTableWidgetSelectionRange(0, col, self.columnCount()-1, col))
 
-            X = self.is_column_selection(selection)[1]
-            return X
+            return self.is_column_selection(selection)[1]
         
 
     def cell_changed(self, row, col):
@@ -137,7 +135,9 @@ class TableWidget(QtWidgets.QTableWidget):
 
             data = np.array([np.zeros(len(sel)) for i in range(maxRow+1)])
             col = 0
+            column_names = []
             for range_ in sel:
+                column_names.append(self.horizontalHeaderItem(range_.leftColumn()).text())
                 for row in range(range_.topRow(), range_.topRow()+data.shape[0]):
                     try:
                         data[row, col] = float(self.item(row, range_.leftColumn()).text())
@@ -149,9 +149,9 @@ class TableWidget(QtWidgets.QTableWidget):
                                          ") is not a number", err)
                 col += 1
                 
-            return True, data
+            return True, Data(data, column_names)
         else:
-            return False, []
+            return False, Data([])
 
                             
     def is_row_selection(self, sel):
@@ -165,6 +165,7 @@ class TableWidget(QtWidgets.QTableWidget):
 
             data = np.array([np.zeros(maxCol+1) for i in range(len(sel))])
             row = 0
+            column_names = [self.horizontalHeaderItem(i).text() for i in range(range_.leftColumn(), range_.leftColumn()+data.shape[1])]
             for range_ in sel:
                 for col in range(range_.leftColumn(), range_.leftColumn()+data.shape[1]):
                     try:
@@ -177,9 +178,9 @@ class TableWidget(QtWidgets.QTableWidget):
                                          ") is not a number", err)
                 row += 1
                 
-            return True, data
+            return True, Data(data, column_names)
         else:
-            return False, -1
+            return False, Data([])
         
 
     def is_rect_selection(self, sel):
@@ -190,6 +191,7 @@ class TableWidget(QtWidgets.QTableWidget):
             data = np.array([np.zeros(cols) for i in range(rows)])
             
             dataRow = 0
+            column_names = [self.horizontalHeaderItem(i).text() for i in range(sel[0].leftColumn(), sel[0].leftColumn()+data.shape[1])]
             for row in range(sel[0].topRow(), sel[0].bottomRow()+1):
                 dataCol = 0
                 for col in range(sel[0].leftColumn(), sel[0].rightColumn()+1):
@@ -203,9 +205,9 @@ class TableWidget(QtWidgets.QTableWidget):
                                          ") is not a number", err)
                     dataCol += 1
                 dataRow += 1
-            return True, data
+            return True, Data(data, column_names)
         else:
-            return False, []
+            return False, Data([])
                     
     class CustomTableWidgetItem(QtWidgets.QTableWidgetItem):
         # Custom table item with specified alignment
@@ -213,3 +215,15 @@ class TableWidget(QtWidgets.QTableWidget):
                      type=QtWidgets.QTableWidgetItem.UserType, **kwargs):
             super().__init__(*args, type=type, **kwargs)
             self.setTextAlignment(align)
+
+
+    class TableWidgetDataMedium(DataMedium):
+        # Data medium of the table, just a sort of adapter to avoid multiple inheritance issues
+        def __init__(self, table):
+            self.table = table
+        
+        def store_data(self, data, *args, **kwargs):
+            self.table.load_data(data, *args, **kwargs)
+
+        def get_data(self, *args, **kwargs):
+            return self.table.get_data()

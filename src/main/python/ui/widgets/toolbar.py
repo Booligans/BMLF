@@ -1,15 +1,26 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from ..assets import assets
 from ..dialog import InputDialog
+from .abstractions import Clipboard, Data
+from .tablewidget import TableWidget
 from ml.regression.regression import LinearModel
 from ml.classifier.classifier import MultiModelClassifier
 from ml.clustering.clustering import ClusteringModel
 from ml.reduction.pca_reductor import PCAReductor
 import ast
 
+SELECTION = 'selection'
+TRANSFORMED = 'transformed'
+
 class ToolBar(QtWidgets.QFrame):
-    def __init__(self, load_data, save_data, plotting_space, *args):
+    def __init__(self, data_medium, plotting_space, *args):
+        """
+        :param data_medium: Medium for data storage and retrieval
+        :type data_medium: ui.widgets.abstractions.DataMedium
+        """
+        
         QtWidgets.QFrame.__init__(self, *args)
+        Clipboard.__init__(self, data_medium)
 
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -30,17 +41,22 @@ class ToolBar(QtWidgets.QFrame):
         self.tabWidget.setIconSize(QtCore.QSize(16, 16))
         self.tabWidget.setObjectName("toolbar_tabWidget")
         self.gridLayout.addWidget(self.tabWidget, 0, 0, -1, -1)
+
+        # The toolbar has a Clipboard because subbars need to access the selected data,
+        # or save new generated data, and this must be done through the toolbar, which has
+        # access to the table or other data medium
+        self.clipboard = Clipboard(data_medium)
         
         # Tab 1, project toolbar
-        self.tab = ProjectToolbar()
+        self.tab = ProjectToolbar(self.clipboard)
         self.tabWidget.addTab(self.tab, "")
         
         # Tab 2, ML toolbar
-        self.tab_2 = MLToolbar(load_data, save_data)
+        self.tab_2 = MLToolbar(self.clipboard)
         self.tabWidget.addTab(self.tab_2, "")
 
         # Tab 3, plots toolbar
-        self.tab_3 = PlotToolbar(load_data, plotting_space)
+        self.tab_3 = PlotToolbar(plotting_space, self.clipboard)
         self.tabWidget.addTab(self.tab_3, "")
 
     def retranslateUi(self, _translate):
@@ -50,10 +66,10 @@ class ToolBar(QtWidgets.QFrame):
         self.tab.retranslateUi(_translate)
         self.tab_2.retranslateUi(_translate)
         self.tab_3.retranslateUi(_translate)
-        
+
      
 class SingleToolbar(QtWidgets.QWidget):
-    def __init__(self, name, *args, **kwargs):
+    def __init__(self, name, clipboard, *args, **kwargs):
         QtWidgets.QWidget.__init__(self, *args, **kwargs)
         
         self.gridLayout = QtWidgets.QGridLayout(self)
@@ -63,6 +79,11 @@ class SingleToolbar(QtWidgets.QWidget):
         self.labels = []
         self.buttons = []
 
+        # Toolbars need to deal with data, which they get from and store in
+        # a clipboard passed from the parent
+        self.clipboard = clipboard
+        
+        
     def addRegion(self, labelText, row, col, rowSpan, colSpan, *buttons):
         # Each region has a label, some buttons and is bordered by lines
         # buttons is an array of tuples (btn, row, col, rowSpan, colSpan)
@@ -97,21 +118,54 @@ class ProjectToolbar(SingleToolbar):
     def __init__(self, *args, **kwargs):
         SingleToolbar.__init__(self, "proj_toolbar", *args, **kwargs)
         self.addRegion("File", 0, 0, 2, 2)
+
+        sel_data_button = ToolPushButton(
+            QtGui.QIcon(":/images/select_data.png"), "Select data", self.select_data)
+        show_sel_data_button = ToolPushButton(
+            QtGui.QIcon(":/images/show_data.png"), "Show selected data", self.show_selected_data)
+        paste_data_button = ToolPushButton(
+            QtGui.QIcon(":/images/paste_data.png"), "Paste selected data into the table", self.paste_data)
+        data_buttons = [(sel_data_button, 1, 0, 1, 1), (show_sel_data_button, 1, 1, 1, 1), (paste_data_button, 1, 2, 1, 1)]
+        self.addRegion("Data", 0, 3, 2, 3, *data_buttons)
+        
+    def select_data(self):
+        self.clipboard.load_from_medium(key=SELECTION)
+
+    def show_selected_data(self):
+        if len(self.clipboard.get_keys()) > 0:
+            dialog = QtWidgets.QDialog()
+            gridLayout = QtWidgets.QGridLayout(dialog)
+            tabWidget = QtWidgets.QTabWidget()
+            gridLayout.addWidget(tabWidget)
+            for key in self.clipboard.get_keys():
+                tab = QtWidgets.QWidget()
+                table = TableWidget(tab)
+                table.load_data(self.clipboard.get_data(key=key))
+                tabWidget.addTab(tab, key)
+                
+            dialog.setWindowTitle("Selected data")
+            dialog.setWindowModality(QtCore.Qt.ApplicationModal)
+            dialog.exec_()
+        else:
+            raise ValueError("No data selected")
+
+    def paste_data(self):
+        dialog = InputDialog("Save data")
+        dialog.addWidget("label", "label1", 0, 0, 1, 1,
+                         text="Save the new data\nstarting in column:")
+        dialog.addWidget("spin_box", "spbox", 0, 1, 1, 1, _range=(1,100))
+        dialog.addWidget("label", "label2", 1, 0, 1, 1, text="Select which data to save")
+        dialog.addWidget("combo_box", "cbbox", 1, 1, 1, 1, items=list(self.clipboard.get_keys()))
+        if dialog.exec_():
+            col_offset = dialog.getResults()["spbox"]-1
+            key = dialog.getResults()["cbbox"]
+            self.clipboard.save_to_medium(key=key, colOffset=col_offset)
+        
+        
         
 class MLToolbar(SingleToolbar):
-    def __init__(self, load_data, save_data, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         SingleToolbar.__init__(self, "ml_toolbar", *args, **kwargs)
-
-        self.data = None
-        self.load_data = load_data
-        self.save_data = save_data
-        
-        # TEMPORARILY DISABLED
-        # Data region
-        #sel_data_button = ToolPushButton(
-        #    QtGui.QIcon(":/images/select_data.png"), "Select data", self.select_data)
-        #data_buttons = [(sel_data_button, 1, 0, 1, 1)]
-        #self.addRegion("Data", 0, 0, 2, 1, *data_buttons)
 
         
         model_selection = ToolComboBox(
@@ -129,25 +183,25 @@ class MLToolbar(SingleToolbar):
         classification_buttons = [(model_selection, 1, 0, 1, 1), (fit, 1, 1, 1, 1)] 
         self.addRegion("Classification", 0, 5, 2, 2, *classification_buttons)
 
-        sel_pca_data_button = ToolPushButton(
-            QtGui.QIcon(":/images/select_data.png"), "Select data for reduction", self.select_pca_data)
-        self.auto_pca = ToolPushButton(
-            QtGui.QIcon(":/images/auto_pca.png"), "Automatic PCA", self.autoPCA)
-        self.auto_pca.setCheckable(True)
-        self.inc_pca = ToolPushButton(
-            QtGui.QIcon(":/images/inc_pca.png"), "Incremental PCA", self.incPCA)
-        self.inc_pca.setCheckable(True)
-        self.kernel_pca = ToolPushButton(
-            QtGui.QIcon(":/images/kernel_pca.png"), "Kernel PCA", self.kernelPCA)
-        self.kernel_pca.setCheckable(True)
+        self.pca_types = {}
+        self.pca_types['auto'] = ToolPushButton(
+            QtGui.QIcon(":/images/auto_pca.png"), "Automatic PCA", lambda : self.selectPCAType('auto'))
+        self.pca_types['auto'].setCheckable(True)
+        self.pca_types['incremental'] = ToolPushButton(
+            QtGui.QIcon(":/images/inc_pca.png"), "Incremental PCA", lambda : self.selectPCAType('incremental'))
+        self.pca_types['incremental'].setCheckable(True)
+        self.pca_types['kernel'] = ToolPushButton(
+            QtGui.QIcon(":/images/kernel_pca.png"), "Kernel PCA", lambda : self.selectPCAType('kernel'))
+        self.pca_types['kernel'].setCheckable(True)
         fit_pca = ToolPushButton(
             QtGui.QIcon(":/images/fit_model.png"), "Fit PCA", self.fitPCA)
         trans_pca = ToolPushButton(
             QtGui.QIcon(":/images/trans_pca.png"), "Transform data", self.transPCA)
-        reduction_buttons = [(sel_pca_data_button, 1, 0, 1, 1), (self.auto_pca, 1, 1, 1, 1),
-                             (self.inc_pca, 1, 2, 1, 1), (self.kernel_pca, 1, 3, 1, 1),
-                             (fit_pca, 1, 4, 1, 1), (trans_pca, 1, 5, 1, 1)]
-        self.addRegion("Reduction", 0, 8, 2, 6, *reduction_buttons)
+        reduction_buttons = [(self.pca_types['auto'], 1, 0, 1, 1),
+                             (self.pca_types['incremental'], 1, 1, 1, 1),
+                             (self.pca_types['kernel'], 1, 2, 1, 1),
+                             (fit_pca, 1, 3, 1, 1), (trans_pca, 1, 4, 1, 1)]
+        self.addRegion("Reduction", 0, 8, 2, 5, *reduction_buttons)
 
         
         model_selection = ToolComboBox(
@@ -155,7 +209,7 @@ class MLToolbar(SingleToolbar):
         fit = ToolPushButton(
             QtGui.QIcon(":/images/fit_model.png"), "Fit model", self.fit_regression_model)
         clustering_buttons = [(model_selection, 1, 0, 1, 1), (fit, 1, 1, 1, 1)] 
-        self.addRegion("Clustering", 0, 17, 2, 2, *clustering_buttons)
+        self.addRegion("Clustering", 0, 16, 2, 2, *clustering_buttons)
 
 
     def fit_regression_model(self):
@@ -167,22 +221,13 @@ class MLToolbar(SingleToolbar):
     def fit_clustering_model(self):
         pass
 
-    def autoPCA(self):
-        self.inc_pca.setChecked(False)
-        self.kernel_pca.setChecked(False)
-        self.initPCA('auto')
+    def selectPCAType(self, pca_type):
+        for key, val in self.pca_types.items():
+            if key == pca_type:
+                val.setChecked(True)
+            else:
+                val.setChecked(False)
 
-    def incPCA(self):
-        self.auto_pca.setChecked(False)
-        self.kernel_pca.setChecked(False)
-        self.initPCA('incremental')
-
-    def kernelPCA(self):
-        self.auto_pca.setChecked(False)
-        self.inc_pca.setChecked(False)
-        self.initPCA('kernel')
-
-    def initPCA(self, pca_type):
         dialog = InputDialog("PCA parameters")
         dialog.addWidget("label", "label1", 0, 0, 1, 1, text="Number of features:")
         dialog.addWidget("spin_box", "spbox", 0, 1, 1, 1, _range=(1,100))
@@ -196,13 +241,15 @@ class MLToolbar(SingleToolbar):
                 params = {}
             self.pca_model = PCAReductor(pca_type, n_features, **params)
             self.pca_model.isfit = False
+            
         
     def fitPCA(self):
         if self.pca_model is not None:
-            if self.pca_data is not None:
-                self.pca_model.fit(self.pca_data)
+            try:
+                data = self.clipboard.get_data(SELECTION)
+                self.pca_model.fit(data.get_data())
                 self.pca_model.isfit = True
-            else:
+            except KeyError:
                 raise Exception("No data loaded")
         else:
             raise Exception("No model selected")
@@ -210,22 +257,14 @@ class MLToolbar(SingleToolbar):
 
     def transPCA(self):
         if self.pca_model is not None and self.pca_model.isfit:
-            dialog = InputDialog("Save data")
-            dialog.addWidget("label", "label1", 0, 0, 1, 1,
-                             text="Save the new data\nstarting in column:")
-            dialog.addWidget("spin_box", "spbox", 0, 1, 1, 1, _range=(1,100))
-            if dialog.exec_():
-                col_offset = dialog.getResults()["spbox"]-1
-                self.save_data(self.pca_model.transform(self.pca_data), colOffset=col_offset)
+            try:
+                data = self.clipboard.get_data(SELECTION)
+                self.clipboard.store_data(Data(self.pca_model.transform(data.get_data())), TRANSFORMED)
+            except KeyError:
+                raise Exception("No data loaded")
         else:
             raise Exception("Please fit a PCA reductor first")
-                
-    def select_pca_data(self):
-        self.pca_data = self.load_data()
         
-    def select_data(self):
-        self.data = self.load_data(target='')
-
     def retranslateUi(self, _translate):
         for widget in self.labels+self.buttons:
             if isinstance(widget, ToolComboBox):
@@ -236,17 +275,10 @@ class MLToolbar(SingleToolbar):
 
         
 class PlotToolbar(SingleToolbar):
-    def __init__(self, load_data, plotting_space, *args, **kwargs):
+    def __init__(self, plotting_space, *args, **kwargs):
         SingleToolbar.__init__(self, "plot_toolbar", *args, **kwargs)
 
-        self.data = None
-        self.load_data = load_data
         self.plotting_space = plotting_space
-
-        # Data region (selection, treatment?)
-        sel_data_button = ToolPushButton(QtGui.QIcon(":/images/select_data.png"), "Select data", self.select_data)
-        data_buttons = [(sel_data_button, 1, 0, 1, 1)]
-        self.addRegion("Data", 0, 0, 2, 1, *data_buttons)
 
         # Visual region (e.g. modify grid/colors?)
         self.addRegion("Visual", 0, 2, 2, 1)
@@ -266,10 +298,6 @@ class PlotToolbar(SingleToolbar):
 
     def bar_plot(self):
         pass
-
-    def select_data(self):
-        self.data = self.load_data()
-
     
     
         

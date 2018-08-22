@@ -11,5 +11,7 @@
     <file>images/inc_pca.png</file>
     <file>images/kernel_pca.png</file>
     <file>images/trans_pca.png</file>
+    <file>images/show_data.png</file>
+    <file>images/paste_data.png</file>
 </qresource>
 </RCC>

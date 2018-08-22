@@ -1,11 +1,12 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from ..assets import assets
+from .abstractions import Data
 import os
 import numpy as np
 
 class ProjectTree(QtWidgets.QTreeWidget):
 
-    opened_data = QtCore.pyqtSignal(np.ndarray, list)
+    opened_data = QtCore.pyqtSignal(Data)
     
     def __init__(self, *args):
         QtWidgets.QTreeWidget.__init__(self, args[0])
@@ -75,7 +76,7 @@ class ProjectTree(QtWidgets.QTreeWidget):
                 tags = []
                 
             data = np.loadtxt(path, skiprows=skiprows)
-            self.opened_data.emit(data, tags)
+            self.opened_data.emit(Data(data, tags))
             
         except Exception as err:
             raise ValueError("Could not read data from " + path + ".\n", err)

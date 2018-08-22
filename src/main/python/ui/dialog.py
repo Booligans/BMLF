@@ -108,8 +108,8 @@ class InputDialog(QtWidgets.QDialog):
         elif _type == 'combo_box':
             widget = QtWidgets.QComboBox(self.centralWidget)
             widget.addItems(items)
-            widget.stateChanged[str].connect(lambda x: self.state_changed(name, x))
-            widget.stateChanged[str].emit(items[0])
+            widget.currentIndexChanged[str].connect(lambda x: self.state_changed(name, x))
+            widget.currentIndexChanged[str].emit(items[0])
         elif _type == 'spin_box':
             widget = QtWidgets.QSpinBox(self.centralWidget)
             widget.setRange(*_range)

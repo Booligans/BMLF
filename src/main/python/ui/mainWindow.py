@@ -95,7 +95,7 @@ class Ui_MainWindow:
         MainWindow.setStatusBar(self.statusbar)
 
         # Tool bar
-        self.toolbar = ToolBar(self.tableWidget.get_data, self.tableWidget.load_data, self.canvas.figure)
+        self.toolbar = ToolBar(self.tableWidget.dataMedium, self.canvas.figure)
         self.verticalLayout.addWidget(self.toolbar)
 
         # Get workspace and setup project tree
