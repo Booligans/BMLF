@@ -5,10 +5,7 @@ class MeanVarianceAnalyzer:
 
     def __init__(self, data):
         self.data=data
-        
-    def variance(list):
-        return np.var(list)
-
+    
     def create_list(self,column):
         list=[]
         for i in (0, len(self.data)):
@@ -30,7 +27,7 @@ class MeanVarianceAnalyzer:
             list=create_list(i)
             if type(data[0][i]) is float:
                 mean_list.append(np.mean(list))
-                variance_list.append(variance(list))
+                variance_list.append(np.var(list))
             else:
                 mode_list.append(mode(list))
                 
