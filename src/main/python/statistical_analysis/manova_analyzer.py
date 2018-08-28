@@ -1,4 +1,5 @@
 from statsmodels.multivariate.manova import MANOVA
+from data_analysis.manova_analysis import MANOVAAnalysis
 
 class MANOVAAnalyzer:
 """Multivariate ANOVA analyzer class"""
@@ -8,4 +9,5 @@ class MANOVAAnalyzer:
         self.model.fit()
     
     def analyze(self):
-        results = self.model.mv_test() #Of type MultivariateTestResults
+        #self.model.mv_test() is of type MultivariateTestResults
+        return MANOVAAnalysis(self.model.mv_test()) 
