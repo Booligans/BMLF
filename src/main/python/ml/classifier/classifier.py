@@ -138,6 +138,10 @@ class MultiModelClassifier(MLModel):
         return StratifiedShuffleSplit(n_splits, test_size, random_state=random_state).split(X,y)
     
     def _guess_problem(self, y):
+        """Finds out whether classification is binary or multiclass.
+        
+        :param y: tags
+        """
         #Guess the type of classification problem from the given labels.
         n_classes = len(set(y))
         if n_classes == 2:

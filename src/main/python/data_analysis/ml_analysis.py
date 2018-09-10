@@ -9,12 +9,14 @@ class MLAnalysis(DataAnalysis):
         :param model: predictive model.
         :type model: MlModel
         """
+        super.__init__(test_data)
         self.model = model
         self.to_predict = test_data
         self.predictions = self.model.predict(test_data)
         self.analyze()
     
     def analyze(self):
+        """Indicates the model used. """
         #Model
         self.text.append('Model: ', self.model)
         
