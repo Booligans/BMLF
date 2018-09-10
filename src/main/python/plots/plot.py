@@ -16,7 +16,7 @@ class Plot(ABC):
         :type y_label: str 
         """
         self.name = name
-        self.data = data
+        self.data = self.process(data)
         self.x_label = x_label
         self.y_label = y_label
         self.args = args
@@ -26,6 +26,11 @@ class Plot(ABC):
     def plot(self, axes):
         """Draws the plot."""
         pass
+
+    def process(self, data):
+        # Implement this method in subclasses if processing is needed
+        # before plotting
+        return data
         
 
 class MultiPlot:
@@ -57,3 +62,6 @@ class MultiPlot:
         :type index: int
         """
         self.plots.pop(index)
+        
+    def __len__(self):
+        return len(self.plots)

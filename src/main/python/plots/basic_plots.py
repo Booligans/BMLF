@@ -12,7 +12,13 @@ class BarPlot(Plot):
         axes.set_title(self.name)
         axes.set_xlabel(self.x_label)
         axes.set_ylabel(self.y_label)
+        print(self.data.shape)
         axes.bar(np.arange(len(self.data)), self.data, *self.args, **self.kwargs)
+
+    def process(self, data):
+        if len(data.shape) > 1 and data.shape[1] == 1:
+            return data.reshape(1, -1)[0]
+        else: return data
 
 class PieChart(Plot):
     """Class encapsulating a PieChart."""

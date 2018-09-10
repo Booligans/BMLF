@@ -4,13 +4,12 @@ from .assets import assets
 from .widgets.treewidget import ProjectTree
 from .widgets.tablewidget import TableWidget
 from .widgets.toolbar import ToolBar
+from .widgets.plotview import PlotView
 import os
 
 from plots.plotting_service import PlottingService
 
 import numpy as np
-from matplotlib.backends.backend_qt5agg import FigureCanvas
-from matplotlib.figure import Figure
 
 class Ui_MainWindow:
     def setupUi(self, MainWindow):
@@ -52,36 +51,9 @@ class Ui_MainWindow:
         self.tabWidget.addTab(self.tab, "")
         
         # Tab 2, will contain the visualizations
-        self.tab_2 = QtWidgets.QWidget()
+        self.tab_2 = PlotView(parent=self.tabWidget)
         self.tab_2.setObjectName("tab_2")
-
-        # Grid layout for the second tab, necessary for FigureCanvas automatic resizing
-        self.gridLayout_tab_2 = QtWidgets.QGridLayout(self.tab_2)
-        self.gridLayout_tab_2.setContentsMargins(1, 1, 1, 1)
-        self.gridLayout_tab_2.setSpacing(0)
-        self.gridLayout_tab_2.setObjectName("gridLayout_tab_2")
-
-        #FigureCanvas for displaying plots
-        self.canvas = FigureCanvas(Figure())
-        self.gridLayout_tab_2.addWidget(self.canvas, 0, 0, 1, 1)
-
-
-        # ----Sample basic plots-----
-
-        #data
-        sp = np.linspace(0, 10, 501)
-        pie = np.array([1,2,3,1])
-
-        #We want a 2x2 grid of plots, with 0.5 vertical separation
-        axes = self.canvas.figure.subplots(2,2, gridspec_kw={'hspace':0.5})
-
-        #Call plotting module
-        PlottingService.build_plot('Awesomest project', 'Bar', 'Bar plot', pie, 'X axis', 'Y axis').plot(axes[0][0])
-        PlottingService.build_plot('Awesomest project', 'Pie', 'Pie plot', pie).plot(axes[0][1])
-        PlottingService.build_plot('Awesomest project', 'Line', 'Line plot', [sp, np.cos(sp)]).plot(axes[1][0])
-
-        #----------------------------
-
+        self.plotview = self.tab_2
         self.tabWidget.addTab(self.tab_2, "")
 
         # Menu bar
@@ -95,7 +67,8 @@ class Ui_MainWindow:
         MainWindow.setStatusBar(self.statusbar)
 
         # Tool bar
-        self.toolbar = ToolBar(self.tableWidget.dataMedium, self.canvas.figure)
+        self.toolbar = ToolBar(self.tableWidget.dataMedium, self.plotview.multiplot)
+        self.toolbar.multiplot_changed.connect(self.plotview.plot_changed)
         self.verticalLayout.addWidget(self.toolbar)
 
         # Get workspace and setup project tree
