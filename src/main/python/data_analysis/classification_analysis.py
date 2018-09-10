@@ -5,6 +5,12 @@ class ClassificationAnalysis(MLAnalysis):
     """Class encapsulating a Classification Analysis on certain data."""
     
     def __init__(self, model, test_data, test_labels):
+        """Initializes relevant metrics' data.
+        
+        :param model: classification model being used.
+        :param test_data: set of testing data.
+        :param test_labels: labels corresponding to testing data.
+        """
         super().__init__(model, test_data)
         self.report = classification_report(test_labels, self.predictions) 
         self.confusion_matrix = confusion_matrix(test_labels, self.predictions)
@@ -13,6 +19,7 @@ class ClassificationAnalysis(MLAnalysis):
         self.r2_score = r2_score(test_labels, self.predictions)
         
     def analyze(self):
+        """Prepares analysis text."""
         super().analyze()
         #Decision boundary analysis
         #------ ?
