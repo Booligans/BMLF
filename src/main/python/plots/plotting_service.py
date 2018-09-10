@@ -8,32 +8,32 @@ class PlottingService:
         """Class constructor"""
         pass
         
-    def build_plot(project, type, *args, **kwargs):
-        """Builds a plot of the indicated type from the given data.
+    def build_plot(project, type_, *args, **kwargs):
+        """Builds a plot of the indicated type_ from the given data.
         
         :param project: current project
         :type project: Project
-        :param type: type of plot
-        :type type: str
+        :param type_: type_ of plot
+        :type type_: str
         :param *args: Variable length argument list
         :param **kwargs: Arbitrary keyword arguments
         """
                          
-        if type=='Bar':
+        if type_=='Bar':
             ret = BarPlot(*args,**kwargs)
-        elif type=='Pie':
+        elif type_=='Pie':
             ret = PieChart(*args,**kwargs)
-        elif type=='Line':
+        elif type_=='Line':
             ret = LinePlot(*args,**kwargs)
-        elif type=='Hist':
+        elif type_=='Hist':
             ret = ScatterPlot(*args,**kwargs)
-        elif type=='Box':
+        elif type_=='Box':
             ret = BoxPlot(*args,**kwargs)
-        elif type=='Scatter':
+        elif type_=='Scatter':
             ret = ScatterPlot(*args,**kwargs)
-        elif type=='Hist2D':
+        elif type_=='Hist2D':
             ret = Histogram2D(*args,**kwargs)
         else:
-            raise ValueError('There is no plot type ', type, '.')
+            raise ValueError('There is no plot type_ ', type_, '.')
             
         return ret

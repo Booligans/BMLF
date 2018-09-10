@@ -7,16 +7,23 @@ from ml.regression.regression import LinearModel
 from ml.classifier.classifier import MultiModelClassifier
 from ml.clustering.clustering import ClusteringModel
 from ml.reduction.pca_reductor import PCAReductor
+from plots.plot import MultiPlot
+from plots.plotting_service import PlottingService
 import ast
 
 SELECTION = 'selection'
 TRANSFORMED = 'transformed'
 
 class ToolBar(QtWidgets.QFrame):
-    def __init__(self, data_medium, plotting_space, *args):
+
+    multiplot_changed = QtCore.pyqtSignal()
+    
+    def __init__(self, data_medium, multiplot, *args):
         """
         :param data_medium: Medium for data storage and retrieval
+        :param multiplot: Multiplot for plot display
         :type data_medium: ui.widgets.abstractions.DataMedium
+        :type multiplot: MultiPlot
         """
         
         QtWidgets.QFrame.__init__(self, *args)
@@ -56,7 +63,8 @@ class ToolBar(QtWidgets.QFrame):
         self.tabWidget.addTab(self.tab_2, "")
 
         # Tab 3, plots toolbar
-        self.tab_3 = PlotToolbar(plotting_space, self.clipboard)
+        self.tab_3 = PlotToolbar(multiplot, self.clipboard)
+        self.tab_3.multiplot_changed.connect(self.multiplot_changed.emit)
         self.tabWidget.addTab(self.tab_3, "")
 
     def retranslateUi(self, _translate):
@@ -275,29 +283,43 @@ class MLToolbar(SingleToolbar):
 
         
 class PlotToolbar(SingleToolbar):
-    def __init__(self, plotting_space, *args, **kwargs):
+
+    multiplot_changed = QtCore.pyqtSignal()
+    
+    def __init__(self, multiplot, *args, **kwargs):
         SingleToolbar.__init__(self, "plot_toolbar", *args, **kwargs)
 
-        self.plotting_space = plotting_space
+        self.multiplot = multiplot
 
         # Visual region (e.g. modify grid/colors?)
         self.addRegion("Visual", 0, 2, 2, 1)
         
         # Basic plots region
-        pie_plot_button = ToolPushButton(QtGui.QIcon(":/images/pie_plot.jpg"), "Pie plot", self.pie_plot)
+        pie_plot_button = ToolPushButton(QtGui.QIcon(":/images/pie_plot.jpg"), "Pie plot", lambda: self.plot("Pie"))
         basic_plots_buttons = [(pie_plot_button, 1, 0, 1, 1)]
-        bar_plot_button = ToolPushButton(QtGui.QIcon(":/images/bar_plot.png"), "Bar plot", self.bar_plot)
+        bar_plot_button = ToolPushButton(QtGui.QIcon(":/images/bar_plot.png"), "Bar plot", lambda: self.plot("Bar"))
         basic_plots_buttons.append((bar_plot_button, 1, 1, 1, 1))
         
         self.addRegion("Basic plots", 0, 4, 2, 2, *basic_plots_buttons)
         self.addRegion("Statistical plots", 0, 7, 2, 1)
 
-    def pie_plot(self):
-        #PlottingService.build_plot("", 'Pie', 'Pie plot', self.data).plot(axes[0][1])
-        pass
-
-    def bar_plot(self):
-        pass
+    def plot(self, type_):
+        dialog = InputDialog("Plot parameters")
+        dialog.addWidget("label", "label_1", 0, 0, 1, 1, text="Plot name:")
+        dialog.addWidget("text_input", "name_input", 0, 1, 1, 1)
+        dialog.addWidget("label", "label_2", 1, 0, 1, 2, text="Plot parameters:")
+        dialog.addWidget("text_input", "params_input", 2, 0, 1, 2)
+        
+        if dialog.exec_():
+            name = dialog.getResults()["name_input"]
+            try:
+                params = ast.literal_eval(dialog.getResults()["params_input"])
+            except SyntaxError:
+                params = {}
+            data = self.clipboard.get_data(SELECTION).get_data()
+            plot = PlottingService.build_plot("", type_, name, data)
+            self.multiplot.add_plot(plot)
+            self.multiplot_changed.emit()
     
     
         
