@@ -18,8 +18,9 @@ class PlotView(QtWidgets.QScrollArea):
             self.screenSize = (res.width(), res.height())
         else:
             self.screenSize = (1920, 1080)
-        self.dpi = self.screenSize[0]/16
-        self.canvas = FigureCanvas(Figure(figsize=(16, 16), dpi=self.dpi, constrained_layout=True))
+        self.dpi = self.screenSize[0]*269/(10*320)
+        self.tight_layout = {'pad':0, 'h_pad':0.5, 'w_pad':0.5, 'rect':(0,0,1,1)}
+        self.canvas = FigureCanvas(Figure(figsize=(10, 10), dpi=self.dpi, tight_layout=self.tight_layout))
         self.multiplot = MultiPlot('Multiplot')
         self.axes = []
         self.plot_size = 4
@@ -30,7 +31,7 @@ class PlotView(QtWidgets.QScrollArea):
         while len(self.multiplot) > self.plot_size-2:
             self.plot_size = 2*self.plot_size
 
-        self.canvas = FigureCanvas(Figure(figsize=(18, max(16,8*self.plot_size)), dpi=self.dpi, constrained_layout=True))
+        self.canvas = FigureCanvas(Figure(figsize=(10, max(10,5*self.plot_size)), dpi=self.dpi, tight_layout = self.tight_layout))
         for i,plot in enumerate(self.multiplot.plots):
             plot.plot(self.canvas.figure.add_subplot(self.plot_size,2,i+1))
 
