@@ -10,5 +10,6 @@ class MANOVAAnalyzer:
         self.model.fit()
     
     def analyze(self):
+        """Applies and tests MANOVA for the given data."""
         #self.model.mv_test() is of type MultivariateTestResults
         return MANOVAAnalysis(self.model.mv_test()) 
