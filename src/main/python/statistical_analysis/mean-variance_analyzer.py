@@ -1,24 +1,31 @@
-import numpy as np
 import numbers
+import numpy as np
+from scipy.stats import mode
 from data_analysis.mean_variance_analysis import MeanVarianceAnalysis
 
 class MeanVarianceAnalyzer:
     """Class encapsulating mean-variance analysis over a dataset."""
 
     def __init__(self, data):
+        """Initializes the class with the given data.
+        
+        :param data: data from dataset.
+        """
         self.data=data
     
     def create_list(self,column):
+        """Creates a list from the indicated column.
+        
+        :param column: Column from which to create the list.
+        """
         list=[]
         for i in (0, len(self.data)):
             list.append(self.data[i][column])
         return list
-        
-    def mode(list):
-        return max(set(list), key=list.count)
 
     def analyze(self):
-        super().analyze()
+        """Computes means, variances, maximums, minimums and modes; and 
+        returns the corresponding analysis."""
         mean_list=[]
         variance_list=[]
         mode_list=[]
