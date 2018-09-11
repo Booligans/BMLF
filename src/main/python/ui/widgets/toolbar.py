@@ -290,9 +290,6 @@ class PlotToolbar(SingleToolbar):
         SingleToolbar.__init__(self, "plot_toolbar", *args, **kwargs)
 
         self.multiplot = multiplot
-
-        # Visual region (e.g. modify grid/colors?)
-        self.addRegion("Visual", 0, 2, 2, 1)
         
         # Basic plots region
         pie_plot_button = ToolPushButton(QtGui.QIcon(":/images/pie_plot.jpg"), "Pie plot", lambda: self.plot("Pie"))
@@ -300,8 +297,8 @@ class PlotToolbar(SingleToolbar):
         bar_plot_button = ToolPushButton(QtGui.QIcon(":/images/bar_plot.png"), "Bar plot", lambda: self.plot("Bar"))
         basic_plots_buttons.append((bar_plot_button, 1, 1, 1, 1))
         
-        self.addRegion("Basic plots", 0, 4, 2, 2, *basic_plots_buttons)
-        self.addRegion("Statistical plots", 0, 7, 2, 1)
+        self.addRegion("Basic plots", 0, 0, 2, 2, *basic_plots_buttons)
+        self.addRegion("Statistical plots", 0, 3, 2, 1)
 
     def plot(self, type_):
         dialog = InputDialog("Plot parameters")

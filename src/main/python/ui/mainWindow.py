@@ -12,6 +12,11 @@ from plots.plotting_service import PlottingService
 import numpy as np
 
 class Ui_MainWindow:
+
+    def __init__(self, screen_res, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.screen_res = screen_res
+    
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(959, 531)
@@ -51,7 +56,7 @@ class Ui_MainWindow:
         self.tabWidget.addTab(self.tab, "")
         
         # Tab 2, will contain the visualizations
-        self.tab_2 = PlotView(parent=self.tabWidget)
+        self.tab_2 = PlotView(parent=self.tabWidget, res = self.screen_res)
         self.tab_2.setObjectName("tab_2")
         self.plotview = self.tab_2
         self.tabWidget.addTab(self.tab_2, "")
@@ -111,12 +116,7 @@ class MenuBar(QtWidgets.QMenuBar):
         self.menuFile.addAction(actionOpen)
         actionSwWorkspace = Action(self, "actionSwWorkspace", lambda: self.sw_workspace(args[1]), "Switch Workspace")
         self.menuFile.addAction(actionSwWorkspace)
-        self.menuModules = QtWidgets.QMenu(self)
-        self.menuModules.setObjectName("Modules")
-        self.actionNewModule = Action(self, "actionNewModule", lambda: self.dialog(args[1]), "Add")
-        self.menuModules.addAction(self.actionNewModule)
-        self.menuFile.addAction(self.menuModules.menuAction())
-
+        
         self.menuEdit = QtWidgets.QMenu(self)
         self.menuEdit.setObjectName("menuEdit")
         actionUndo = Action(self, "actionUndo", lambda: self.undo(), "Undo")
@@ -135,7 +135,6 @@ class MenuBar(QtWidgets.QMenuBar):
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.menuEdit.setTitle(_translate("MainWindow", "Edit"))
         self.menuNew.setTitle(_translate("MainWindow", "New"))
-        self.menuModules.setTitle(_translate("MainWindow", "Modules"))
 
     def newProject(self):
         print("new Project")
